@@ -1,0 +1,23 @@
+{
+  // Entorno listo para GitHub Codespaces (o "Dev Containers" en VS Code):
+  // Node.js + PostgreSQL, instala dependencias, carga datos de ejemplo y arranca Renty.
+  "name": "Renty",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "shutdownAction": "stopCompose",
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": { "label": "Renty", "onAutoForward": "openBrowser" }
+  },
+  "postCreateCommand": "npm install && npm run seed",
+  "postAttachCommand": "npm start",
+  "customizations": {
+    "vscode": {
+      "extensions": ["ckolkman.vscode-postgres", "dbaeumer.vscode-eslint"]
+    },
+    "codespaces": {
+      "openFiles": ["README.md"]
+    }
+  }
+}

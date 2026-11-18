@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Publicar propiedad — Renty</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,600&display=swap" rel="stylesheet">
+  <link href="vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body data-page="publicar" data-roles="propietario,inmobiliaria">
+  <div id="nav"></div>
+  <div id="subnav"></div>
+
+  <main class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-9 col-xl-8">
+        <div class="page-head">
+          <h1 class="h2 mb-1" id="titulo">Publicar propiedad</h1>
+          <p class="text-muted mb-0">Completa los datos. Podrás editarlos después desde tu panel.</p>
+        </div>
+
+        <div class="alert alert-success d-none" role="status" id="ok">
+          <h2 class="h5" id="okTitulo">¡Listo! Tu propiedad quedó en revisión.</h2>
+          <p class="mb-2">Un administrador la revisará, normalmente en menos de 24 horas. Verás el estado en tu panel; mientras tanto solo tú puedes ver el anuncio.</p>
+          <div class="d-flex flex-wrap gap-2"><a class="btn btn-primary btn-sm" id="verAnuncio" href="#">Ver cómo quedó</a><a class="btn btn-light btn-sm" id="volver" href="#">Volver a mi panel</a></div>
+        </div>
+
+        <form class="card" id="pub" novalidate hidden>
+          <div class="form-section">
+            <h2 class="h5 mb-3"><span class="step-num">1</span>Lo básico</h2>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <span class="form-label d-block">Operación</span>
+                <div class="seg" role="group" aria-label="Operación">
+                  <input type="radio" class="btn-check" name="operacion" id="pR" value="renta" checked><label for="pR">Renta</label>
+                  <input type="radio" class="btn-check" name="operacion" id="pV" value="venta"><label for="pV">Venta</label>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="tipo">Tipo de propiedad</label>
+                <select class="form-select" id="tipo" required><option value="">Selecciona…</option></select>
+                <div class="invalid-feedback">Selecciona el tipo.</div>
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="tit">Título del anuncio</label>
+                <input class="form-control" id="tit" maxlength="70" required placeholder="Ej. Apartamento luminoso con balcón">
+                <div class="invalid-feedback">Escribe un título.</div>
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="desc">Descripción</label>
+                <textarea class="form-control" id="desc" rows="4" required minlength="40" placeholder="Cuenta qué hace especial a la propiedad, cómo es la zona y qué hay cerca."></textarea>
+                <div class="invalid-feedback">Describe la propiedad (mínimo 40 caracteres).</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h2 class="h5 mb-3"><span class="step-num">2</span>Ubicación</h2>
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label" for="ciudad">Ciudad</label>
+                <select class="form-select" id="ciudad" required><option value="">Selecciona…</option></select>
+                <div class="invalid-feedback">Selecciona la ciudad.</div>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label" for="zona">Barrio o zona</label>
+                <input class="form-control" id="zona" required>
+                <div class="invalid-feedback">Escribe el barrio.</div>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label" for="dir">Dirección</label>
+                <input class="form-control" id="dir" autocomplete="street-address" required aria-describedby="dirHelp">
+                <div class="form-text" id="dirHelp">No se muestra públicamente.</div>
+                <div class="invalid-feedback">Escribe la dirección.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h2 class="h5 mb-3"><span class="step-num">3</span>Características</h2>
+            <div class="row g-3">
+              <div class="col-6 col-md-3"><label class="form-label" for="hab">Habitaciones</label><input class="form-control" id="hab" type="number" min="0" max="20" value="2" required></div>
+              <div class="col-6 col-md-3"><label class="form-label" for="banos">Baños</label><input class="form-control" id="banos" type="number" min="1" max="20" value="1" required></div>
+              <div class="col-6 col-md-3"><label class="form-label" for="area">Área (m²)</label><input class="form-control" id="area" type="number" min="10" required><div class="invalid-feedback">Indica el área.</div></div>
+              <div class="col-6 col-md-3"><label class="form-label" for="parq">Parqueaderos</label><input class="form-control" id="parq" type="number" min="0" max="10" value="0"></div>
+              <div class="col-12">
+                <span class="form-label d-block">Comodidades</span>
+                <div class="pill-check" id="amen"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h2 class="h5 mb-3"><span class="step-num">4</span>Fotos</h2>
+            <label class="dropzone d-block" for="fotos" style="cursor:pointer">
+              <i class="bi bi-images"></i>
+              <div class="fw-semibold text-body mt-2">Selecciona las fotos de tu propiedad</div>
+              <small>JPG, PNG o WebP, máximo 5 MB cada una y 12 en total. Las propiedades con 5 o más fotos reciben más contactos.</small>
+              <span class="btn btn-light mt-3"><i class="bi bi-plus-lg me-1"></i>Elegir fotos</span>
+              <input class="visually-hidden" type="file" id="fotos" accept="image/jpeg,image/png,image/webp" multiple>
+            </label>
+            <div class="small text-muted mt-2" id="fotosInfo" aria-live="polite"></div>
+            <div class="fotos-grid mt-3" id="fotosLista"></div>
+          </div>
+
+          <div class="form-section">
+            <h2 class="h5 mb-3"><span class="step-num">5</span>Precio</h2>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label" for="precio" id="precioLbl">Canon mensual</label>
+                <div class="input-group"><span class="input-group-text">$</span><input class="form-control" id="precio" type="number" min="1000" step="1000" required inputmode="numeric"><span class="input-group-text">COP</span></div>
+                <div class="form-text" id="precioFmt"></div>
+              </div>
+              <div class="col-md-6" id="adminCol">
+                <label class="form-label" for="admin">Administración (opcional)</label>
+                <div class="input-group"><span class="input-group-text">$</span><input class="form-control" id="admin" type="number" min="0" step="1000" inputmode="numeric"><span class="input-group-text">COP</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section d-flex flex-wrap justify-content-end gap-2">
+            <a class="btn btn-light" id="cancelar" href="#">Cancelar</a>
+            <button class="btn btn-primary" type="submit">Enviar a revisión</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer"></div>
+
+  <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    Renty.ready.then(async (usuario) => {
+      const form = document.getElementById("pub");
+      const $ = (id) => document.getElementById(id);
+      const esc = Renty.esc;
+      $("volver").href = $("cancelar").href = Renty.ROLES[usuario.rol].panel;
+
+      $("tipo").insertAdjacentHTML("beforeend", Object.entries(TIPOS).map(([k, t]) => `<option value="${k}">${t.nombre}</option>`).join(""));
+      $("ciudad").insertAdjacentHTML("beforeend", CIUDADES.map((c) => `<option>${esc(c)}</option>`).join(""));
+      $("amen").innerHTML = AMENIDADES.map((a, i) => `<input class="btn-check" type="checkbox" name="amen" value="${esc(a)}" id="pA${i}"><label for="pA${i}">${esc(a)}</label>`).join("");
+
+      // Fotos: las que ya tiene la propiedad (al editar) y las nuevas elegidas
+      let existentes = [];          // [{id, url}]
+      const quitar = new Set();     // ids de fotos existentes a borrar
+      let nuevas = [];              // File[]
+
+      function pintarFotos() {
+        const items = [
+          ...existentes.filter((f) => !quitar.has(f.id)).map((f) => ({ url: f.url, attr: `data-quitar-existente="${f.id}"` })),
+          ...nuevas.map((f, i) => ({ url: URL.createObjectURL(f), attr: `data-quitar-nueva="${i}"` }))
+        ];
+        $("fotosLista").innerHTML = items.map((f, i) => `
+          <div class="foto-item">${i === 0 ? '<span class="op-badge">Portada</span>' : ""}<img src="${esc(f.url)}" alt="Foto ${i + 1}">
+            <button type="button" class="fav-btn" ${f.attr} aria-label="Quitar foto ${i + 1}"><i class="bi bi-x-lg"></i></button></div>`).join("");
+        $("fotosInfo").textContent = items.length ? Renty.plural(items.length, "foto", "fotos") + (items.length > 12 ? " — el máximo es 12" : "") : "";
+      }
+      $("fotos").addEventListener("change", (e) => {
+        const malas = [...e.target.files].filter((f) => f.size > 5 * 1024 * 1024);
+        if (malas.length) Renty.aviso(`${Renty.plural(malas.length, "foto pesa", "fotos pesan")} más de 5 MB y no se agregaron`, "error");
+        nuevas.push(...[...e.target.files].filter((f) => f.size <= 5 * 1024 * 1024));
+        e.target.value = "";
+        pintarFotos();
+      });
+      $("fotosLista").addEventListener("click", (e) => {
+        const ex = e.target.closest("[data-quitar-existente]"), nu = e.target.closest("[data-quitar-nueva]");
+        if (ex) quitar.add(Number(ex.dataset.quitarExistente));
+        if (nu) nuevas.splice(Number(nu.dataset.quitarNueva), 1);
+        pintarFotos();
+      });
+
+      // Modo edición: precarga los datos de la propiedad
+      const editarId = Number(new URLSearchParams(location.search).get("editar")) || null;
+      if (editarId) {
+        $("titulo").textContent = "Editar propiedad";
+        document.title = "Editar propiedad — Renty";
+        form.querySelector("[type=submit]").textContent = "Guardar y enviar a revisión";
+        try {
+          const ed = await Renty.api("/propiedades/" + editarId);
+          if (!ed.direccion && ed.publicador.id !== usuario.id) throw new Error("Solo puedes editar tus propias propiedades");
+          form.operacion.value = ed.operacion; $("tipo").value = ed.tipo; $("tit").value = ed.titulo; $("desc").value = ed.descripcion;
+          $("ciudad").value = ed.ciudad; $("zona").value = ed.zona; $("dir").value = ed.direccion || "";
+          $("hab").value = ed.hab; $("banos").value = ed.banos; $("area").value = ed.area; $("parq").value = ed.parqueaderos;
+          $("precio").value = ed.precio; $("admin").value = ed.administracion ?? "";
+          form.querySelectorAll('[name="amen"]').forEach((c) => (c.checked = ed.amenidades.includes(c.value)));
+          existentes = ed.fotos;
+          pintarFotos();
+          form.insertAdjacentHTML("afterbegin", ed.moderacion === "rechazada"
+            ? `<div class="alert alert-warning m-4 mb-0"><b>Motivo del rechazo:</b> ${esc(ed.motivo_rechazo || "")}<br><small>Corrígelo y guarda para enviarla de nuevo a revisión.</small></div>`
+            : `<div class="alert bg-verde-suave border-0 m-4 mb-0 small"><i class="bi bi-info-circle me-1"></i>Al guardar, la propiedad vuelve a revisión y deja de verse hasta que un administrador apruebe los cambios.</div>`);
+        } catch (err) {
+          form.outerHTML = `<div class="empty-state"><i class="bi bi-house-x"></i><p class="mt-2 text-muted">${esc(err.message)}</p><a class="btn btn-primary" href="${Renty.ROLES[usuario.rol].panel}">Volver a mi panel</a></div>`;
+          return;
+        }
+      }
+      form.hidden = false;
+
+      function ajustar() {
+        const renta = form.operacion.value === "renta";
+        $("precioLbl").textContent = renta ? "Canon mensual" : "Precio de venta";
+        $("adminCol").hidden = !renta;
+        const v = Number($("precio").value);
+        $("precioFmt").textContent = v ? Renty.money(v) + (renta ? " al mes" : "") : "";
+      }
+      form.addEventListener("input", ajustar);
+      ajustar();
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        form.classList.add("was-validated");
+        if (!form.checkValidity()) { form.querySelector(":invalid")?.focus(); return; }
+
+        const fd = new FormData();
+        const campos = { operacion: form.operacion.value, tipo: $("tipo").value, titulo: $("tit").value, descripcion: $("desc").value,
+          ciudad: $("ciudad").value, zona: $("zona").value, direccion: $("dir").value, hab: $("hab").value, banos: $("banos").value,
+          area: $("area").value, parqueaderos: $("parq").value, precio: $("precio").value, administracion: $("admin").value };
+        for (const [k, val] of Object.entries(campos)) fd.append(k, val);
+        form.querySelectorAll('[name="amen"]:checked').forEach((c) => fd.append("amen", c.value));
+        nuevas.forEach((f) => fd.append("fotos", f));
+        quitar.forEach((id) => fd.append("eliminar_fotos", id));
+
+        try {
+          const p = await Renty.ocupado(e.submitter, () =>
+            Renty.api(editarId ? "/propiedades/" + editarId : "/propiedades", { method: editarId ? "PUT" : "POST", form: fd }));
+          if (editarId) $("okTitulo").textContent = "Cambios guardados. La propiedad volvió a revisión.";
+          $("verAnuncio").href = "propiedad.html?id=" + p.id;
+          form.classList.add("d-none");
+          $("ok").classList.remove("d-none");
+          window.scrollTo({ top: 0 });
+        } catch (err) {
+          Renty.erroresEnForm(form, err, { titulo: "tit", descripcion: "desc", direccion: "dir", parqueaderos: "parq", administracion: "admin", amen: "amen" });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

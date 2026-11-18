@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Moderación — Renty</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,600&display=swap" rel="stylesheet">
+  <link href="vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body data-page="panel" data-roles="admin">
+  <div id="nav"></div>
+  <div id="subnav"></div>
+
+  <main class="container">
+    <div class="page-head">
+      <p class="eyebrow mb-1">Administración</p>
+      <h1 class="h2 mb-0">Moderación de propiedades</h1>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-lg-3"><div class="card stat"><div class="num" data-stat="propiedades.pendientes">–</div><div class="lbl">Esperando revisión</div></div></div>
+      <div class="col-6 col-lg-3"><div class="card stat"><div class="num" data-stat="propiedades.publicadas">–</div><div class="lbl">Publicadas</div></div></div>
+      <div class="col-6 col-lg-3"><a class="card stat text-decoration-none text-body" href="admin-usuarios.html"><div class="num" data-stat="usuarios.total">–</div><div class="lbl">Usuarios</div><div class="delta" id="nuevos"></div></a></div>
+      <div class="col-6 col-lg-3"><div class="card stat"><div class="num" data-stat="actividad.conversaciones_7d">–</div><div class="lbl">Conversaciones en 7 días</div></div></div>
+    </div>
+
+    <div class="card">
+      <div class="p-3 p-md-4 pb-0 d-flex flex-wrap gap-3 justify-content-between align-items-center">
+        <ul class="nav nav-pills gap-1" id="tabs" role="tablist">
+          <li class="nav-item"><button class="nav-link active" data-mod="pendiente" type="button">Pendientes <span class="badge rounded-pill text-bg-light ms-1" id="nPend"></span></button></li>
+          <li class="nav-item"><button class="nav-link" data-mod="aprobada" type="button">Aprobadas</button></li>
+          <li class="nav-item"><button class="nav-link" data-mod="rechazada" type="button">Rechazadas</button></li>
+          <li class="nav-item"><button class="nav-link" data-mod="" type="button">Todas</button></li>
+        </ul>
+        <form class="d-flex gap-2" id="buscar" role="search" style="min-width:min(100%,320px)">
+          <label class="visually-hidden" for="q">Buscar propiedad o publicador</label>
+          <input class="form-control" type="search" id="q" placeholder="Título, zona, publicador o correo">
+        </form>
+      </div>
+      <div class="px-3 px-md-4 pt-2" id="filtroPub"></div>
+      <div class="p-3 p-md-4 pt-2" id="lista" aria-live="polite"></div>
+      <div class="text-center pb-4"><button class="btn btn-light d-none" type="button" id="mas">Ver más</button></div>
+    </div>
+  </main>
+
+  <!-- Rechazar -->
+  <div class="modal fade" id="mRechazo" tabindex="-1" aria-labelledby="mRechazoLbl" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <form class="modal-content" id="fRechazo" novalidate>
+        <div class="modal-header border-0 pb-0"><h2 class="modal-title h5" id="mRechazoLbl">Rechazar propiedad</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
+        <div class="modal-body">
+          <p class="text-muted small" id="rTitulo"></p>
+          <label class="form-label" for="motivo">Motivo</label>
+          <select class="form-select mb-2" id="plantilla" aria-label="Motivos frecuentes">
+            <option value="">Motivos frecuentes…</option>
+            <option>Las fotos no corresponden a la propiedad o son de baja calidad.</option>
+            <option>La descripción incluye datos de contacto. Usa los mensajes de Renty para comunicarte con los interesados.</option>
+            <option>El precio no parece corresponder a la propiedad. Revisa que esté bien escrito.</option>
+            <option>El título no describe la propiedad.</option>
+            <option>Parece una publicación duplicada.</option>
+          </select>
+          <textarea class="form-control" id="motivo" rows="3" minlength="5" maxlength="500" required placeholder="Quien publica verá este mensaje en su panel"></textarea>
+          <div class="invalid-feedback">Explica el motivo (mínimo 5 caracteres).</div>
+        </div>
+        <div class="modal-footer border-0 pt-0"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-danger" type="submit">Rechazar</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div id="footer"></div>
+
+  <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    Renty.ready.then(async () => {
+      const $ = (id) => document.getElementById(id);
+      const esc = Renty.esc;
+      const qs = new URLSearchParams(location.search);
+      let moderacion = qs.has("moderacion") ? qs.get("moderacion") : "pendiente";
+      let publicador = Number(qs.get("publicador")) || 0;
+      let pagina = 1, props = [], rechazando = null, peticion = 0;
+      const ROL = { propietario: "Propietario", inmobiliaria: "Inmobiliaria" };
+
+      async function resumen() {
+        try {
+          const r = await Renty.api("/admin/resumen");
+          r.usuarios.total = r.usuarios.arrendatarios + r.usuarios.propietarios + r.usuarios.inmobiliarias + r.usuarios.admins;
+          document.querySelectorAll("[data-stat]").forEach((el) => {
+            const [a, b] = el.dataset.stat.split(".");
+            el.textContent = new Intl.NumberFormat("es-CO").format(r[a][b]);
+          });
+          $("nuevos").textContent = r.usuarios.nuevos_7d ? `+${r.usuarios.nuevos_7d} esta semana` : "";
+          $("nPend").textContent = r.propiedades.pendientes || "";
+        } catch { /* quedan en – */ }
+      }
+
+      const estado = (p) => p.moderacion === "pendiente" ? '<span class="estado revision">Pendiente</span>'
+        : p.moderacion === "rechazada" ? '<span class="estado rechazada">Rechazada</span>'
+        : `<span class="estado ${p.estado === "activa" ? "activa" : "pausada"}">${p.estado === "activa" ? "Publicada" : "Pausada"}</span>`;
+
+      const fila = (p) => `
+        <div class="list-row align-items-start flex-wrap flex-md-nowrap" data-id="${p.id}">
+          <a class="thumb position-relative flex-shrink-0" style="width:96px;height:72px" href="propiedad.html?id=${p.id}" aria-hidden="true" tabindex="-1">${Renty.media(p)}</a>
+          <div class="flex-grow-1" style="min-width:0;flex-basis:200px">
+            <div class="d-flex flex-wrap align-items-center gap-2">${estado(p)}${p.destacada ? '<span class="estado nuevo"><i class="bi bi-star-fill"></i> Destacada</span>' : ""}${!p.publicador.activo ? '<span class="estado pausada">Cuenta suspendida</span>' : ""}</div>
+            <a class="fw-semibold text-body text-decoration-none d-block mt-1" href="propiedad.html?id=${p.id}">${esc(p.titulo)}</a>
+            <small class="text-muted d-block">${esc(TIPOS[p.tipo]?.nombre || p.tipo)} en ${p.operacion} · ${esc(p.zona)}, ${esc(p.ciudad)} · ${Renty.price(p).replace("<small>", "").replace("</small>", "")} · ${Renty.plural(p.fotos.length, "foto", "fotos")}</small>
+            <small class="d-block">${esc(p.publicador.nombre)} <span class="text-muted">(${ROL[p.publicador.tipo] || p.publicador.tipo} · ${esc(p.publicador.email)})</span></small>
+            <small class="text-muted d-block">${p.moderacion === "pendiente" ? "Enviada " + Renty.hace(p.actualizado).toLowerCase() : (p.moderador ? `Revisada por ${esc(p.moderador)} · ` : "") + (p.moderado_en ? Renty.hace(p.moderado_en).toLowerCase() : "")}</small>
+            ${p.moderacion === "rechazada" && p.motivo_rechazo ? `<small class="text-danger d-block">Motivo: ${esc(p.motivo_rechazo)}</small>` : ""}
+          </div>
+          <div class="d-flex gap-2 flex-shrink-0 ms-md-auto">
+            ${p.moderacion !== "aprobada" ? `<button class="btn btn-primary btn-sm" data-accion="aprobar"><i class="bi bi-check2 me-1"></i>Aprobar</button>` : ""}
+            ${p.moderacion !== "rechazada" ? `<button class="btn btn-light btn-sm" data-accion="rechazar">${p.moderacion === "aprobada" ? "Retirar" : "Rechazar"}</button>` : ""}
+            <div class="dropdown"><button class="btn btn-light btn-sm" data-bs-toggle="dropdown" aria-label="Más acciones para ${esc(p.titulo)}"><i class="bi bi-three-dots"></i></button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="propiedad.html?id=${p.id}"><i class="bi bi-eye me-2"></i>Ver anuncio completo</a></li>
+                <li><button class="dropdown-item" data-accion="destacar"><i class="bi ${p.destacada ? "bi-star" : "bi-star-fill"} me-2"></i>${p.destacada ? "Quitar de destacadas" : "Destacar en la portada"}</button></li>
+                <li><a class="dropdown-item" href="panel-admin.html?moderacion=&publicador=${p.publicador.id}"><i class="bi bi-person me-2"></i>Más de este publicador</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><button class="dropdown-item text-danger" data-accion="eliminar"><i class="bi bi-trash me-2"></i>Eliminar definitivamente</button></li>
+              </ul></div>
+          </div>
+        </div>`;
+
+      async function cargar({ mas = false } = {}) {
+        pagina = mas ? pagina + 1 : 1;
+        const id = ++peticion;
+        const params = new URLSearchParams({ pagina });
+        if (moderacion) params.set("moderacion", moderacion);
+        if ($("q").value.trim()) params.set("q", $("q").value.trim());
+        if (publicador) params.set("publicador", publicador);
+        if (!mas) $("lista").innerHTML = `<div class="text-center text-muted py-4"><span class="spinner-border spinner-border-sm me-2"></span>Cargando…</div>`;
+        try {
+          const r = await Renty.api("/admin/propiedades?" + params);
+          if (id !== peticion) return;
+          props = mas ? props.concat(r.propiedades) : r.propiedades;
+          $("lista").innerHTML = props.length ? props.map(fila).join("")
+            : `<div class="empty-state border-0"><i class="bi ${moderacion === "pendiente" ? "bi-check2-all" : "bi-inbox"}"></i><p class="mt-2 mb-0 text-muted">${moderacion === "pendiente" && !$("q").value ? "No hay propiedades esperando revisión. ¡Todo al día!" : "No hay propiedades con ese filtro."}</p></div>`;
+          $("mas").classList.toggle("d-none", r.pagina * r.por_pagina >= r.total);
+          $("filtroPub").innerHTML = publicador && props[0] ? `<button class="chip" type="button" id="quitarPub">Publicadas por ${esc(props[0].publicador.nombre)} <i class="bi bi-x-lg"></i></button>` : "";
+        } catch (err) { $("lista").innerHTML = `<div class="text-muted py-4 text-center">${esc(err.message)}</div>`; }
+      }
+
+      function cambiarPestana(mod) {
+        moderacion = mod;
+        document.querySelectorAll("#tabs [data-mod]").forEach((b) => b.classList.toggle("active", b.dataset.mod === mod));
+        cargar();
+      }
+      $("tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-mod]"); if (b) cambiarPestana(b.dataset.mod); });
+      let espera;
+      $("q").addEventListener("input", () => { clearTimeout(espera); espera = setTimeout(cargar, 350); });
+      $("buscar").addEventListener("submit", (e) => { e.preventDefault(); cargar(); });
+      $("mas").addEventListener("click", (e) => Renty.ocupado(e.currentTarget, () => cargar({ mas: true })));
+      $("filtroPub").addEventListener("click", (e) => { if (e.target.closest("#quitarPub")) { publicador = 0; history.replaceState(null, "", "panel-admin.html"); cargar(); } });
+
+      const modal = new bootstrap.Modal($("mRechazo"));
+      $("plantilla").addEventListener("change", (e) => { if (e.target.value) $("motivo").value = e.target.value; e.target.value = ""; });
+
+      $("lista").addEventListener("click", async (e) => {
+        const b = e.target.closest("[data-accion]");
+        if (!b) return;
+        const p = props.find((x) => x.id === Number(b.closest("[data-id]").dataset.id));
+        try {
+          if (b.dataset.accion === "aprobar") {
+            await Renty.ocupado(b, () => Renty.api(`/admin/propiedades/${p.id}/aprobar`, { method: "POST" }));
+            Renty.aviso(`"${p.titulo}" aprobada y publicada`);
+          } else if (b.dataset.accion === "rechazar") {
+            rechazando = p;
+            $("rTitulo").textContent = p.titulo;
+            $("fRechazo").reset(); $("fRechazo").classList.remove("was-validated");
+            modal.show();
+            return;
+          } else if (b.dataset.accion === "destacar") {
+            await Renty.api(`/admin/propiedades/${p.id}`, { method: "PATCH", body: { destacada: !p.destacada } });
+            Renty.aviso(p.destacada ? "Ya no aparece en destacadas" : "Ahora aparece en la portada");
+          } else if (b.dataset.accion === "eliminar") {
+            if (!confirm(`¿Eliminar "${p.titulo}" definitivamente? Se borran también sus fotos, visitas y mensajes. No se puede deshacer.`)) return;
+            await Renty.api(`/admin/propiedades/${p.id}`, { method: "DELETE" });
+            Renty.aviso("Propiedad eliminada");
+          }
+          cargar(); resumen();
+        } catch (err) { Renty.aviso(err.message, "error"); }
+      });
+
+      $("fRechazo").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const f = e.currentTarget;
+        f.classList.add("was-validated");
+        if (!f.checkValidity()) return;
+        try {
+          await Renty.ocupado(e.submitter, () => Renty.api(`/admin/propiedades/${rechazando.id}/rechazar`, { method: "POST", body: { motivo: $("motivo").value } }));
+          modal.hide();
+          Renty.aviso("Propiedad rechazada. Quien la publicó verá el motivo en su panel.");
+          cargar(); resumen();
+        } catch (err) { Renty.erroresEnForm(f, err); }
+      });
+
+      document.querySelectorAll("#tabs [data-mod]").forEach((b) => b.classList.toggle("active", b.dataset.mod === moderacion));
+      resumen(); cargar();
+    });
+  </script>
+</body>
+</html>

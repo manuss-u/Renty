@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Detalle de la propiedad — Renty</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,600&display=swap" rel="stylesheet">
+  <link href="vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body data-page="detalle">
+  <div id="nav"></div>
+
+  <main class="container py-4" id="contenido"></main>
+
+  <div id="footer"></div>
+
+  <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    Renty.ready.then(async () => {
+      const el = document.getElementById("contenido");
+      const esc = Renty.esc;
+      const id = Number(new URLSearchParams(location.search).get("id"));
+      el.innerHTML = `<div class="row">${Renty.cargando()}</div>`;
+
+      let p;
+      try {
+        if (!id) throw Object.assign(new Error(), { status: 404 });
+        p = await Renty.api("/propiedades/" + id);
+      } catch (err) {
+        el.innerHTML = err.status === 404
+          ? `<div class="empty-state my-5"><i class="bi bi-house-x"></i><h1 class="h4 mt-3">No encontramos esta propiedad</h1><p class="text-muted">Puede que ya no esté disponible.</p><a class="btn btn-primary" href="propiedades.html">Ver propiedades</a></div>`
+          : `<div class="row">${Renty.falla(err)}</div>`;
+        return;
+      }
+
+      document.title = `${p.titulo} en ${p.zona} — Renty`;
+      const s = Renty.session();
+      const esDueno = s && s.id === p.publicador.id;
+      const puedeContactar = !s || s.rol === "arrendatario";
+      const tipo = TIPOS[p.tipo]?.nombre || p.tipo;
+      const extraFotos = Math.max(p.fotos.length - 3, 0);
+      const manana = new Date(Date.now() + 864e5).toISOString().slice(0, 10);
+      const horas = ["08:00", "09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
+
+      const esAdmin = s?.rol === "admin";
+      const notaDueno = p.moderacion === "pendiente" ? "Esta es tu propiedad y está <b>en revisión</b>: el público la verá cuando un administrador la apruebe."
+        : p.moderacion === "rechazada" ? `Esta propiedad fue <b>rechazada</b>: ${esc(p.motivo_rechazo || "")}`
+        : p.estado === "pausada" ? "Esta es tu propiedad y está <b>pausada</b>: no aparece en las búsquedas."
+        : "Esta es tu propiedad.";
+      const panelAdmin = () => `
+        <div class="mb-3">${p.moderacion === "pendiente" ? '<span class="estado revision">Pendiente de revisión</span>'
+          : p.moderacion === "rechazada" ? '<span class="estado rechazada">Rechazada</span>' : '<span class="estado activa">Aprobada</span>'}
+          ${p.estado === "pausada" ? '<span class="estado pausada ms-1">Pausada por quien publica</span>' : ""}</div>
+        ${p.motivo_rechazo && p.moderacion === "rechazada" ? `<p class="small text-danger">${esc(p.motivo_rechazo)}</p>` : ""}
+        <dl class="small mb-3"><dt>Dirección</dt><dd>${esc(p.direccion)}</dd><dt>Vistas</dt><dd class="mb-0">${p.vistas}</dd></dl>
+        <form id="moderar" class="d-grid gap-2" novalidate>
+          ${p.moderacion !== "aprobada" ? '<button class="btn btn-primary" type="button" data-mod="aprobar"><i class="bi bi-check2-circle me-1"></i>Aprobar y publicar</button>' : ""}
+          ${p.moderacion !== "rechazada" ? `<button class="btn btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#rechazo" aria-expanded="false" aria-controls="rechazo"><i class="bi bi-x-circle me-1"></i>${p.moderacion === "aprobada" ? "Retirar (rechazar)" : "Rechazar"}</button>
+          <div class="collapse" id="rechazo"><label class="form-label mt-1" for="motivo">Motivo (lo verá quien publica)</label>
+            <textarea class="form-control" id="motivo" rows="3" minlength="5" maxlength="500" required></textarea><div class="invalid-feedback">Explica el motivo (mínimo 5 caracteres).</div>
+            <button class="btn btn-outline-danger w-100 mt-2" type="button" data-mod="rechazar">Confirmar rechazo</button></div>` : ""}
+          <button class="btn btn-light" type="button" data-mod="destacar"><i class="bi ${p.destacada ? "bi-star-fill" : "bi-star"} me-1"></i>${p.destacada ? "Quitar de destacadas" : "Destacar en la portada"}</button>
+          <a class="btn btn-link" href="panel-admin.html">Volver a moderación</a>
+        </form>`;
+
+      const panelContacto = esDueno
+        ? `<div class="alert ${p.moderacion === "rechazada" ? "alert-warning" : "bg-verde-suave border-0"} small">${notaDueno}</div>
+           <div class="d-grid gap-2"><a class="btn btn-primary" href="publicar.html?editar=${p.id}"><i class="bi bi-pencil me-1"></i>${p.moderacion === "rechazada" ? "Corregir y reenviar" : "Editar"}</a><a class="btn btn-light" href="${Renty.ROLES[s.rol].panel}">Ir a mi panel</a></div>`
+        : esAdmin ? panelAdmin()
+        : puedeContactar
+        ? `<form id="contacto" novalidate>
+            <div class="row g-2 mb-2">
+              <div class="col-7"><label class="form-label" for="cFecha">Fecha de visita</label><input class="form-control" type="date" id="cFecha" min="${manana}"><div class="invalid-feedback">Elige una fecha.</div></div>
+              <div class="col-5"><label class="form-label" for="cHora">Hora</label><select class="form-select" id="cHora">${horas.map((h) => `<option value="${h}">${Renty.hora(h)}</option>`).join("")}</select></div>
+            </div>
+            <div class="mb-3"><label class="form-label" for="cMsg">Mensaje</label><textarea class="form-control" id="cMsg" rows="3" maxlength="1000">Hola, me interesa esta propiedad y quisiera agendar una visita.</textarea><div class="invalid-feedback">Escribe un mensaje.</div></div>
+            <div class="d-grid gap-2">
+              <button class="btn btn-primary" type="submit" data-accion="visita"><i class="bi bi-calendar-check me-1"></i>Solicitar visita</button>
+              <button class="btn btn-light" type="submit" data-accion="mensaje"><i class="bi bi-chat-dots me-1"></i>Solo enviar mensaje</button>
+            </div>
+          </form>`
+        : `<div class="alert bg-verde-suave border-0 mb-0 small">Estás navegando como <b>${Renty.ROLES[s.rol].nombre.toLowerCase()}</b>. Las solicitudes de visita están disponibles para cuentas de arrendatario.</div>`;
+
+      el.innerHTML = `
+      <nav aria-label="Ruta" class="mb-3"><ol class="breadcrumb small mb-0">
+        <li class="breadcrumb-item"><a href="index.html">Inicio</a></li>
+        <li class="breadcrumb-item"><a href="propiedades.html?operacion=${p.operacion}">${p.operacion === "renta" ? "En renta" : "En venta"}</a></li>
+        <li class="breadcrumb-item"><a href="propiedades.html?ciudad=${encodeURIComponent(p.ciudad)}">${esc(p.ciudad)}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">${esc(p.zona)}</li>
+      </ol></nav>
+
+      <div class="gallery mb-4">
+        <div>${Renty.media(p, 0)}<span class="op-badge ${p.operacion}">${p.operacion === "renta" ? "En renta" : "En venta"}</span></div>
+        <div>${Renty.media(p, 1)}</div>
+        <div>${Renty.media(p, 2)}${extraFotos ? `<span class="op-badge" style="left:auto;right:.75rem;top:auto;bottom:.75rem">+${extraFotos} fotos</span>` : ""}</div>
+      </div>
+
+      <div class="row g-4 g-lg-5">
+        <div class="col-lg-8">
+          <div class="d-flex justify-content-between align-items-start gap-3">
+            <div>
+              <h1 class="h2 mb-1">${esc(p.titulo)}</h1>
+              <p class="text-muted mb-0"><i class="bi bi-geo-alt"></i> ${esc(p.zona)}, ${esc(p.ciudad)} · ${esc(tipo)}</p>
+            </div>
+            ${puedeContactar ? Renty.favBtn(p, "btn btn-light flex-shrink-0") : ""}
+          </div>
+
+          <div class="row g-3 my-3">
+            ${p.hab ? `<div class="col-6 col-md-3"><div class="spec-tile"><b>${p.hab}</b><span>Habitaciones</span></div></div>` : ""}
+            <div class="col-6 col-md-3"><div class="spec-tile"><b>${p.banos}</b><span>Baños</span></div></div>
+            <div class="col-6 col-md-3"><div class="spec-tile"><b>${p.area} m²</b><span>Área construida</span></div></div>
+            ${p.parqueaderos ? `<div class="col-6 col-md-3"><div class="spec-tile"><b>${p.parqueaderos}</b><span>Parqueaderos</span></div></div>` : ""}
+            <div class="col-6 col-md-3"><div class="spec-tile"><b>${Renty.money(Math.round(p.precio / p.area))}</b><span>Precio por m²</span></div></div>
+          </div>
+
+          <h2 class="h5 mt-4">Descripción</h2>
+          <p style="max-width:68ch;white-space:pre-line">${esc(p.descripcion)}</p>
+
+          ${p.amenidades.length ? `<h2 class="h5 mt-4">Comodidades</h2>
+          <div class="row row-cols-2 row-cols-md-3 g-2">
+            ${p.amenidades.map((a) => `<div class="col"><i class="bi bi-check2-circle text-primary me-2"></i>${esc(a)}</div>`).join("")}
+          </div>` : ""}
+
+          <h2 class="h5 mt-4">Ubicación</h2>
+          <div class="map-placeholder"><div><i class="bi bi-geo-alt fs-3 text-terracota"></i><div class="fw-semibold text-body mt-1">${esc(p.zona)}, ${esc(p.ciudad)}</div><small>La dirección exacta se comparte al confirmar la visita</small></div></div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="card card-soft p-4 sticky-side">
+            <div class="prop-price fs-2">${Renty.price(p)}</div>
+            <p class="small text-muted">${p.operacion === "renta" ? (p.administracion ? `Canon mensual. Administración: ${Renty.money(p.administracion)}.` : "Canon mensual.") : "Precio de venta."}</p>
+            <div class="d-flex align-items-center gap-3 py-3 border-top border-bottom mb-3">
+              <span class="avatar lg ${p.publicador.tipo === "inmobiliaria" ? "verde" : ""}">${esc(Renty.initials(p.publicador.nombre))}</span>
+              <div><div class="fw-bold">${esc(p.publicador.nombre)}</div><small class="text-muted">${p.publicador.tipo === "inmobiliaria" ? "Inmobiliaria" : "Propietario directo"}</small></div>
+            </div>
+            ${panelContacto}
+          </div>
+        </div>
+      </div>
+
+      <section class="mt-5 pt-3 d-none" id="similares"><h2 class="h4 mb-4">Propiedades similares</h2><div class="row g-4"></div></section>`;
+
+      document.getElementById("moderar")?.addEventListener("click", async (e) => {
+        const b = e.target.closest("[data-mod]");
+        if (!b) return;
+        const accion = b.dataset.mod;
+        const motivo = document.getElementById("motivo");
+        if (accion === "rechazar" && !motivo.checkValidity()) { motivo.classList.add("is-invalid"); motivo.focus(); return; }
+        try {
+          await Renty.ocupado(b, () => accion === "destacar"
+            ? Renty.api(`/admin/propiedades/${p.id}`, { method: "PATCH", body: { destacada: !p.destacada } })
+            : Renty.api(`/admin/propiedades/${p.id}/${accion}`, { method: "POST", body: accion === "rechazar" ? { motivo: motivo.value } : {} }));
+          sessionStorage.setItem("renty_aviso", accion === "aprobar" ? "Propiedad aprobada y publicada" : accion === "rechazar" ? "Propiedad rechazada" : "Listo");
+          location.reload();
+        } catch (err) { Renty.aviso(err.message, "error"); }
+      });
+      try { const a = sessionStorage.getItem("renty_aviso"); if (a) { sessionStorage.removeItem("renty_aviso"); Renty.aviso(a); } } catch { /* sin almacenamiento */ }
+
+      const form = document.getElementById("contacto");
+      if (form) {
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const accion = e.submitter?.dataset.accion || "visita";
+          if (!Renty.session()) { location.href = "login.html?next=" + encodeURIComponent("propiedad.html?id=" + p.id); return; }
+          const fechaEl = form.cFecha, msgEl = form.cMsg;
+          fechaEl.required = accion === "visita";
+          msgEl.required = accion === "mensaje";
+          form.classList.add("was-validated");
+          if (!form.checkValidity()) return;
+          try {
+            await Renty.ocupado(e.submitter, async () => {
+              if (accion === "visita") {
+                await Renty.api("/visitas", { method: "POST", body: { propiedad_id: p.id, fecha: fechaEl.value, hora: form.cHora.value, mensaje: msgEl.value } });
+                form.outerHTML = `<div class="alert alert-success mb-0" role="status"><b>Solicitud enviada.</b><br>${esc(p.publicador.tipo === "inmobiliaria" ? p.publicador.nombre : p.publicador.nombre.split(" ")[0])} te confirmará la visita del ${esc(Renty.fecha(fechaEl.value, { weekday: "long", day: "numeric", month: "long" }))}. <a href="mensajes.html">Ver conversación</a></div>`;
+              } else {
+                const c = await Renty.api("/conversaciones", { method: "POST", body: { propiedad_id: p.id, texto: msgEl.value } });
+                location.href = "mensajes.html?c=" + c.id;
+              }
+            });
+          } catch (err) { Renty.erroresEnForm(form, err, { fecha: "cFecha", hora: "cHora", mensaje: "cMsg", texto: "cMsg" }); }
+        });
+      }
+
+      try {
+        const params = new URLSearchParams({ operacion: p.operacion, ciudad: p.ciudad, excluir: p.id, limite: 3 });
+        let { propiedades } = await Renty.api("/propiedades?" + params);
+        if (!propiedades.length) ({ propiedades } = await Renty.api(`/propiedades?operacion=${p.operacion}&tipo=${p.tipo}&excluir=${p.id}&limite=3`));
+        if (propiedades.length) {
+          const sec = document.getElementById("similares");
+          sec.querySelector(".row").innerHTML = Renty.grid(propiedades);
+          sec.classList.remove("d-none");
+        }
+      } catch { /* las similares son opcionales */ }
+    });
+  </script>
+</body>
+</html>
