@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Buscar propiedades — Renty</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,600&display=swap" rel="stylesheet">
+  <link href="vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body data-page="listado">
+  <div id="nav"></div>
+
+  <main class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-3">
+      <div>
+        <h1 class="h2 mb-1" id="titulo">Propiedades</h1>
+        <p class="text-muted mb-0" id="conteo" aria-live="polite"></p>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-light d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#filtros" aria-controls="filtros"><i class="bi bi-sliders me-1"></i>Filtros</button>
+        <label class="visually-hidden" for="orden">Ordenar por</label>
+        <select class="form-select w-auto" id="orden" name="orden">
+          <option value="reciente">Más recientes</option>
+          <option value="precio-asc">Menor precio</option>
+          <option value="precio-desc">Mayor precio</option>
+          <option value="area-desc">Mayor área</option>
+        </select>
+        <button class="btn btn-outline-primary d-none" type="button" id="guardar"><i class="bi bi-bell me-1"></i><span class="d-none d-sm-inline">Guardar búsqueda</span><span class="d-sm-none">Guardar</span></button>
+      </div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 mb-3" id="chips"></div>
+
+    <div class="row g-4">
+      <!-- Filtros: columna fija en escritorio, panel lateral en móvil -->
+      <div class="col-lg-3">
+        <div class="offcanvas-lg offcanvas-start filters-panel" tabindex="-1" id="filtros" aria-labelledby="filtrosLbl">
+          <div class="offcanvas-header border-bottom">
+            <h2 class="offcanvas-title h5" id="filtrosLbl">Filtros</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#filtros" aria-label="Cerrar"></button>
+          </div>
+          <div class="offcanvas-body">
+            <form id="f" class="w-100" novalidate>
+              <div class="filter-group">
+                <div class="filter-title">Operación</div>
+                <div class="pill-check">
+                  <input class="btn-check" type="radio" name="operacion" id="fOpT" value="" checked><label for="fOpT">Todas</label>
+                  <input class="btn-check" type="radio" name="operacion" id="fOpR" value="renta"><label for="fOpR">Renta</label>
+                  <input class="btn-check" type="radio" name="operacion" id="fOpV" value="venta"><label for="fOpV">Venta</label>
+                </div>
+              </div>
+
+              <div class="filter-group">
+                <label class="filter-title d-block" for="fCiudad">Ciudad</label>
+                <select class="form-select" id="fCiudad" name="ciudad"><option value="">Todas</option></select>
+                <label class="filter-title d-block mt-3" for="fQ">Zona o palabra clave</label>
+                <input class="form-control" id="fQ" name="q" type="search" placeholder="Ej. Chapinero, terraza">
+              </div>
+
+              <div class="filter-group">
+                <div class="filter-title">Tipo de propiedad</div>
+                <div id="fTipos"></div>
+              </div>
+
+              <div class="filter-group">
+                <div class="filter-title">Precio (COP)</div>
+                <div class="row g-2">
+                  <div class="col"><label class="visually-hidden" for="fMin">Precio mínimo</label><input class="form-control" id="fMin" name="min" type="number" min="0" step="100000" placeholder="Mín." inputmode="numeric"></div>
+                  <div class="col"><label class="visually-hidden" for="fMax">Precio máximo</label><input class="form-control" id="fMax" name="max" type="number" min="0" step="100000" placeholder="Máx." inputmode="numeric"></div>
+                </div>
+              </div>
+
+              <div class="filter-group">
+                <div class="filter-title">Habitaciones</div>
+                <div class="pill-check">
+                  <input class="btn-check" type="radio" name="hab" id="fH0" value="" checked><label for="fH0">Todas</label>
+                  <input class="btn-check" type="radio" name="hab" id="fH1" value="1"><label for="fH1">1+</label>
+                  <input class="btn-check" type="radio" name="hab" id="fH2" value="2"><label for="fH2">2+</label>
+                  <input class="btn-check" type="radio" name="hab" id="fH3" value="3"><label for="fH3">3+</label>
+                  <input class="btn-check" type="radio" name="hab" id="fH4" value="4"><label for="fH4">4+</label>
+                </div>
+                <div class="filter-title mt-3">Baños</div>
+                <div class="pill-check">
+                  <input class="btn-check" type="radio" name="banos" id="fB0" value="" checked><label for="fB0">Todos</label>
+                  <input class="btn-check" type="radio" name="banos" id="fB1" value="1"><label for="fB1">1+</label>
+                  <input class="btn-check" type="radio" name="banos" id="fB2" value="2"><label for="fB2">2+</label>
+                  <input class="btn-check" type="radio" name="banos" id="fB3" value="3"><label for="fB3">3+</label>
+                </div>
+              </div>
+
+              <div class="filter-group">
+                <label class="filter-title d-flex justify-content-between" for="fArea">Área mínima <span class="fw-normal text-muted" id="areaOut">Sin mínimo</span></label>
+                <input class="form-range" id="fArea" name="area" type="range" min="0" max="300" step="10" value="0">
+              </div>
+
+              <div class="filter-group">
+                <div class="filter-title">Comodidades</div>
+                <div class="pill-check" id="fAmen"></div>
+              </div>
+
+              <div class="filter-group">
+                <div class="filter-title">Publicado por</div>
+                <div class="form-check"><input class="form-check-input" type="checkbox" name="pub" value="propietario" id="fP1"><label class="form-check-label" for="fP1">Propietario directo</label></div>
+                <div class="form-check"><input class="form-check-input" type="checkbox" name="pub" value="inmobiliaria" id="fP2"><label class="form-check-label" for="fP2">Inmobiliaria</label></div>
+              </div>
+
+              <div class="d-grid gap-2 mt-4">
+                <button class="btn btn-primary d-lg-none" type="button" data-bs-dismiss="offcanvas" data-bs-target="#filtros">Ver resultados</button>
+                <button class="btn btn-light" type="button" id="limpiar">Limpiar filtros</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-9">
+        <div class="row g-4" id="resultados"></div>
+        <div class="text-center mt-4"><button class="btn btn-light d-none" type="button" id="mas">Ver más propiedades</button></div>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer"></div>
+
+  <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    Renty.ready.then(() => {
+      const f = document.getElementById("f");
+      const $ = (id) => document.getElementById(id);
+      const esc = Renty.esc;
+
+      // Opciones generadas desde los catálogos del servidor
+      $("fCiudad").insertAdjacentHTML("beforeend", CIUDADES.map((c) => `<option>${esc(c)}</option>`).join(""));
+      $("fTipos").innerHTML = Object.entries(TIPOS).map(([k, t]) =>
+        `<div class="form-check"><input class="form-check-input" type="checkbox" name="tipo" value="${k}" id="fT_${k}"><label class="form-check-label" for="fT_${k}">${t.nombre}</label></div>`).join("");
+      $("fAmen").innerHTML = AMENIDADES.map((a, i) =>
+        `<input class="btn-check" type="checkbox" name="amen" value="${esc(a)}" id="fA${i}"><label for="fA${i}">${esc(a)}</label>`).join("");
+
+      // Estado inicial desde la URL (p. ej. al venir del buscador de la portada o de una búsqueda guardada)
+      const qs = new URLSearchParams(location.search);
+      for (const [k, val] of qs) {
+        if (k === "orden") { $("orden").value = val; continue; }
+        f.querySelectorAll(`[name="${k}"]`).forEach((el) => {
+          if (el.type === "radio" || el.type === "checkbox") { if (el.value === val) el.checked = true; }
+          else el.value = val;
+        });
+      }
+
+      /** Filtros actuales como query string, sin valores vacíos. */
+      function filtros() {
+        const out = new URLSearchParams();
+        for (const [k, val] of new FormData(f)) if (val !== "" && !(k === "area" && val === "0")) out.append(k, val);
+        return out;
+      }
+
+      let pagina = 1, peticion = 0;
+
+      async function cargar({ mas = false } = {}) {
+        const params = filtros();
+        const conOrden = new URLSearchParams(params);
+        if ($("orden").value !== "reciente") conOrden.set("orden", $("orden").value);
+        history.replaceState(null, "", "propiedades.html" + (conOrden.toString() ? "?" + conOrden : ""));
+
+        pagina = mas ? pagina + 1 : 1;
+        const id = ++peticion;   // si el usuario cambia otro filtro antes de que llegue la respuesta, se descarta la vieja
+        if (!mas) $("resultados").setAttribute("aria-busy", "true");
+        pintarChips();
+
+        try {
+          const r = await Renty.api(`/propiedades?${conOrden}&pagina=${pagina}&limite=12`);
+          if (id !== peticion) return;
+          const op = params.get("operacion"), ciudad = params.get("ciudad");
+          $("titulo").textContent = "Propiedades" + (op ? ` en ${op}` : "") + (ciudad ? ` en ${ciudad}` : "");
+          $("conteo").textContent = r.total === 1 ? "1 propiedad encontrada" : `${r.total} propiedades encontradas`;
+          const html = Renty.grid(r.propiedades, "col-sm-6 col-xl-4");
+          if (mas) $("resultados").insertAdjacentHTML("beforeend", html);
+          else $("resultados").innerHTML = r.total ? html
+            : `<div class="col-12"><div class="empty-state"><i class="bi bi-binoculars"></i><h2 class="h5 mt-3">No hay propiedades con esos filtros</h2><p class="text-muted">Prueba ampliando el rango de precio o quitando alguna comodidad.</p><button class="btn btn-primary" type="button" data-limpiar>Limpiar filtros</button></div></div>`;
+          $("mas").classList.toggle("d-none", r.pagina * r.por_pagina >= r.total);
+        } catch (err) {
+          if (id === peticion) $("resultados").innerHTML = Renty.falla(err);
+        } finally {
+          if (id === peticion) $("resultados").removeAttribute("aria-busy");
+        }
+      }
+
+      function pintarChips() {
+        const d = new FormData(f);
+        const chips = [];
+        const add = (txt, clear) => chips.push({ txt, clear });
+        const area = Number(d.get("area")) || 0;
+        $("areaOut").textContent = area ? `${area} m² o más` : "Sin mínimo";
+        if (d.get("operacion")) add(d.get("operacion") === "renta" ? "Renta" : "Venta", () => $("fOpT").checked = true);
+        if (d.get("ciudad")) add(d.get("ciudad"), () => $("fCiudad").value = "");
+        if (d.get("q")) add(`“${d.get("q")}”`, () => $("fQ").value = "");
+        d.getAll("tipo").forEach((t) => add(TIPOS[t]?.nombre || t, () => $("fT_" + t).checked = false));
+        if (Number(d.get("min"))) add("Desde " + Renty.money(d.get("min")), () => $("fMin").value = "");
+        if (Number(d.get("max"))) add("Hasta " + Renty.money(d.get("max")), () => $("fMax").value = "");
+        if (d.get("hab")) add(`${d.get("hab")}+ hab.`, () => $("fH0").checked = true);
+        if (d.get("banos")) add(`${d.get("banos")}+ baños`, () => $("fB0").checked = true);
+        if (area) add(`${area}+ m²`, () => $("fArea").value = 0);
+        d.getAll("amen").forEach((a) => add(a, () => [...f.querySelectorAll('[name="amen"]')].find((x) => x.value === a).checked = false));
+        d.getAll("pub").forEach((p) => add(p === "propietario" ? "Propietario directo" : "Inmobiliaria", () => f.querySelector(`[name="pub"][value="${p}"]`).checked = false));
+        $("chips").innerHTML = chips.map((c, i) => `<button type="button" class="chip" data-chip="${i}" aria-label="Quitar filtro ${esc(c.txt)}">${esc(c.txt)} <i class="bi bi-x-lg"></i></button>`).join("");
+        $("chips").onclick = (e) => { const b = e.target.closest("[data-chip]"); if (b) { chips[b.dataset.chip].clear(); cargar(); } };
+      }
+
+      // Los campos de texto esperan a que el usuario deje de escribir
+      let espera;
+      f.addEventListener("input", (e) => {
+        clearTimeout(espera);
+        if (["fQ", "fMin", "fMax", "fArea"].includes(e.target.id)) { pintarChips(); espera = setTimeout(cargar, 350); }
+        else cargar();
+      });
+      f.addEventListener("submit", (e) => e.preventDefault());
+      $("orden").addEventListener("change", () => cargar());
+      $("mas").addEventListener("click", (e) => Renty.ocupado(e.currentTarget, () => cargar({ mas: true })));
+      const limpiar = () => { f.reset(); $("fOpT").checked = true; cargar(); };
+      $("limpiar").addEventListener("click", limpiar);
+      $("resultados").addEventListener("click", (e) => { if (e.target.closest("[data-limpiar]")) limpiar(); });
+
+      // Guardar búsqueda (arrendatarios y visitantes, que primero deben ingresar)
+      const s = Renty.session();
+      if (!s || s.rol === "arrendatario") $("guardar").classList.remove("d-none");
+      $("guardar").addEventListener("click", async (e) => {
+        if (!s) { location.href = "login.html?next=" + encodeURIComponent("propiedades.html" + location.search); return; }
+        const params = filtros();
+        const partes = [params.getAll("tipo").map((t) => TIPOS[t]?.plural).join(" o ") || "Propiedades",
+          params.get("operacion") ? `en ${params.get("operacion")}` : "", params.get("ciudad") ? `en ${params.get("ciudad")}` : ""];
+        const nombre = partes.filter(Boolean).join(" ") + (params.getAll("amen").length ? ` · ${params.getAll("amen").join(", ")}` : "");
+        try {
+          await Renty.ocupado(e.currentTarget, () => Renty.api("/busquedas", { method: "POST", body: { nombre, filtros: params.toString() } }));
+          Renty.aviso("Búsqueda guardada. La verás en tu panel con las propiedades nuevas.");
+        } catch (err) { Renty.aviso(err.message, "error"); }
+      });
+
+      cargar();
+    });
+  </script>
+</body>
+</html>

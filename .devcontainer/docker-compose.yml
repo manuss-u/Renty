@@ -1,0 +1,31 @@
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm
+    volumes:
+      - ../..:/workspaces:cached
+    command: sleep infinity
+    environment:
+      DATABASE_URL: postgres://renty:renty@db:5432/renty
+      TEST_DATABASE_URL: postgres://renty:renty@db:5432/renty_test
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: renty
+      POSTGRES_PASSWORD: renty
+      POSTGRES_DB: renty
+    volumes:
+      - renty-db:/var/lib/postgresql/data
+      - ../backend/scripts/crear-bd-pruebas.sql:/docker-entrypoint-initdb.d/crear-bd-pruebas.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U renty -d renty"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  renty-db:

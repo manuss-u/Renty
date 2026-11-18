@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Usuarios — Renty</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,600&display=swap" rel="stylesheet">
+  <link href="vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body data-page="usuarios" data-roles="admin">
+  <div id="nav"></div>
+  <div id="subnav"></div>
+
+  <main class="container">
+    <div class="page-head">
+      <p class="eyebrow mb-1">Administración</p>
+      <h1 class="h2 mb-1">Usuarios</h1>
+      <p class="text-muted mb-0" id="conteo" aria-live="polite"></p>
+    </div>
+
+    <div class="card">
+      <form class="row g-2 p-3 p-md-4 pb-0" id="filtros" role="search">
+        <div class="col-md-6">
+          <label class="visually-hidden" for="q">Buscar</label>
+          <input class="form-control" type="search" id="q" name="q" placeholder="Nombre, correo o NIT">
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="visually-hidden" for="rol">Rol</label>
+          <select class="form-select" id="rol" name="rol">
+            <option value="">Todos los roles</option><option value="arrendatario">Arrendatarios</option><option value="propietario">Propietarios</option>
+            <option value="inmobiliaria">Inmobiliarias</option><option value="admin">Administradores</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="visually-hidden" for="estado">Estado</label>
+          <select class="form-select" id="estado" name="estado"><option value="">Activos y suspendidos</option><option value="activo">Solo activos</option><option value="suspendido">Solo suspendidos</option></select>
+        </div>
+      </form>
+      <div class="table-responsive px-3 pb-2 pt-2">
+        <table class="table">
+          <thead><tr><th>Usuario</th><th>Rol</th><th>Teléfono</th><th class="text-end">Propiedades</th><th>Registro</th><th>Último ingreso</th><th>Estado</th><th><span class="visually-hidden">Acciones</span></th></tr></thead>
+          <tbody id="filas"></tbody>
+        </table>
+      </div>
+      <div class="text-center pb-4"><button class="btn btn-light d-none" type="button" id="mas">Ver más</button></div>
+    </div>
+  </main>
+
+  <div id="footer"></div>
+
+  <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    Renty.ready.then(async (yo) => {
+      const $ = (id) => document.getElementById(id);
+      const esc = Renty.esc;
+      let pagina = 1, usuarios = [], peticion = 0;
+      const ROL = { arrendatario: ["bi-search-heart", "Arrendatario"], propietario: ["bi-key", "Propietario"], inmobiliaria: ["bi-buildings", "Inmobiliaria"], admin: ["bi-shield-check", "Administrador"] };
+      const fecha = (s) => s ? Renty.fecha(s, { day: "numeric", month: "short", year: "numeric" }) : "—";
+
+      const fila = (u) => `
+        <tr data-id="${u.id}">
+          <td><div class="d-flex align-items-center gap-2"><span class="avatar ${u.rol === "inmobiliaria" ? "verde" : ""}">${esc(Renty.initials(u.nombre))}</span>
+            <div style="min-width:0"><div class="fw-semibold">${esc(u.nombre)}${u.id === yo.id ? ' <span class="text-muted small">(tú)</span>' : ""}</div>
+            <small class="text-muted">${esc(u.email)}${u.responsable ? " · " + esc(u.responsable) : ""}${u.nit ? " · NIT " + esc(u.nit) : ""}</small></div></div></td>
+          <td class="text-nowrap"><span class="role-badge"><i class="bi ${ROL[u.rol][0]}"></i>${ROL[u.rol][1]}</span></td>
+          <td class="text-nowrap">${esc(u.telefono || "—")}</td>
+          <td class="text-end">${u.propiedades ? `<a href="panel-admin.html?moderacion=&publicador=${u.id}">${u.propiedades}</a>` : "0"}</td>
+          <td class="text-nowrap">${fecha(u.creado)}</td>
+          <td class="text-nowrap">${u.ultimo_ingreso ? Renty.hace(u.ultimo_ingreso) : "—"}</td>
+          <td>${u.activo ? '<span class="estado activa">Activo</span>' : '<span class="estado rechazada">Suspendido</span>'}</td>
+          <td class="text-end">${u.id === yo.id ? "" : u.activo
+            ? `<button class="btn btn-light btn-sm text-nowrap" data-activo="false">Suspender</button>`
+            : `<button class="btn btn-primary btn-sm text-nowrap" data-activo="true">Reactivar</button>`}</td>
+        </tr>`;
+
+      async function cargar({ mas = false } = {}) {
+        pagina = mas ? pagina + 1 : 1;
+        const id = ++peticion;
+        const params = new URLSearchParams({ pagina });
+        for (const [k, v] of new FormData($("filtros"))) if (v.trim()) params.set(k, v.trim());
+        try {
+          const r = await Renty.api("/admin/usuarios?" + params);
+          if (id !== peticion) return;
+          usuarios = mas ? usuarios.concat(r.usuarios) : r.usuarios;
+          $("conteo").textContent = Renty.plural(r.total, "usuario", "usuarios");
+          $("filas").innerHTML = usuarios.length ? usuarios.map(fila).join("") : `<tr><td colspan="8" class="text-center text-muted py-4">No hay usuarios con ese filtro.</td></tr>`;
+          $("mas").classList.toggle("d-none", r.pagina * r.por_pagina >= r.total);
+        } catch (err) { $("filas").innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">${esc(err.message)}</td></tr>`; }
+      }
+
+      $("filas").addEventListener("click", async (e) => {
+        const b = e.target.closest("[data-activo]");
+        if (!b) return;
+        const u = usuarios.find((x) => x.id === Number(b.closest("[data-id]").dataset.id));
+        const activo = b.dataset.activo === "true";
+        if (!activo && !confirm(`¿Suspender a ${u.nombre}?\n\nSe cerrará su sesión, no podrá ingresar y sus propiedades dejarán de verse. Puedes reactivarla cuando quieras.`)) return;
+        try {
+          await Renty.ocupado(b, () => Renty.api("/admin/usuarios/" + u.id, { method: "PATCH", body: { activo } }));
+          u.activo = activo;
+          b.closest("tr").outerHTML = fila(u);
+          Renty.aviso(activo ? `${u.nombre} puede volver a ingresar` : `${u.nombre} fue suspendido`);
+        } catch (err) { Renty.aviso(err.message, "error"); }
+      });
+
+      let espera;
+      $("filtros").addEventListener("input", (e) => { clearTimeout(espera); espera = setTimeout(cargar, e.target.id === "q" ? 350 : 0); });
+      $("filtros").addEventListener("submit", (e) => { e.preventDefault(); cargar(); });
+      $("mas").addEventListener("click", (e) => Renty.ocupado(e.currentTarget, () => cargar({ mas: true })));
+      cargar();
+    });
+  </script>
+</body>
+</html>

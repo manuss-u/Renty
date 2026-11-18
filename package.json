@@ -1,0 +1,25 @@
+{
+  "name": "renty",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Renty: propiedades en renta y venta",
+  "type": "module",
+  "main": "backend/src/server.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node backend/src/server.js",
+    "dev": "node --watch backend/src/server.js",
+    "migrate": "node backend/scripts/migrar.js",
+    "seed": "node backend/src/seed.js",
+    "crear-admin": "node backend/scripts/crear-admin.js",
+    "test": "node --test --test-concurrency=1 backend/test/*.test.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.7.4",
+    "multer": "^2.5.0",
+    "pg": "^8.23.1"
+  }
+}

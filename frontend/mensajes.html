@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mensajes — Renty</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,600&display=swap" rel="stylesheet">
+  <link href="vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body data-page="mensajes" data-roles="arrendatario,propietario,inmobiliaria">
+  <div id="nav"></div>
+  <div id="subnav"></div>
+
+  <main class="container">
+    <div class="page-head"><h1 class="h2 mb-0">Mensajes</h1></div>
+
+    <div class="card chat">
+      <div class="chat-list" id="lista" role="list"></div>
+      <div class="chat-main">
+        <div class="d-flex align-items-center gap-3 p-3 border-bottom" id="cabecera"></div>
+        <div class="chat-body" id="cuerpo" aria-live="polite"></div>
+        <form class="d-flex gap-2 p-3 border-top" id="enviar">
+          <label class="visually-hidden" for="txt">Escribe un mensaje</label>
+          <input class="form-control" id="txt" placeholder="Escribe un mensaje…" autocomplete="off" required>
+          <button class="btn btn-primary" type="submit" aria-label="Enviar"><i class="bi bi-send"></i></button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer"></div>
+
+  <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    Renty.ready.then(async (usuario) => {
+      const $ = (id) => document.getElementById(id);
+      const esc = Renty.esc;
+      const lista = $("lista"), cuerpo = $("cuerpo"), form = $("enviar");
+      let chats = [], activo = null, ultimoId = 0;
+
+      async function cargarLista() {
+        chats = await Renty.api("/conversaciones");
+        lista.innerHTML = chats.length ? chats.map((c) => `
+          <button type="button" class="chat-item ${c.id === activo ? "active" : ""}" data-chat="${c.id}" ${c.id === activo ? 'aria-current="true"' : ""}>
+            <span class="avatar">${esc(Renty.initials(c.con.nombre))}</span>
+            <span class="flex-grow-1" style="min-width:0">
+              <span class="d-flex justify-content-between gap-2"><b class="text-truncate">${esc(c.con.nombre)}</b>${c.no_leidos ? `<span class="badge rounded-pill text-bg-primary">${c.no_leidos}</span>` : `<small class="text-muted text-nowrap">${c.ultimo ? Renty.hace(c.ultimo.creado) : ""}</small>`}</span>
+              <small class="text-terracota d-block text-truncate">${esc(c.propiedad.titulo)}</small>
+              <p class="${c.no_leidos ? "fw-semibold text-body" : ""}">${c.ultimo ? (c.ultimo.mio ? "Tú: " : "") + esc(c.ultimo.texto) : ""}</p>
+            </span>
+          </button>`).join("")
+          : `<div class="text-center text-muted p-4"><i class="bi bi-chat-dots fs-3 d-block mb-2 text-terracota"></i>${usuario.rol === "arrendatario"
+              ? 'Aún no tienes conversaciones. Escribe desde la página de una propiedad que te interese.<br><a href="propiedades.html">Buscar propiedades</a>'
+              : "Cuando alguien escriba sobre tus propiedades, la conversación aparecerá aquí."}</div>`;
+      }
+
+      const burbuja = (m) => `<div class="bubble ${m.mio ? "me" : ""}" style="white-space:pre-line">${esc(m.texto)}<div class="small opacity-75 mt-1 text-end">${esc(Renty.hace(m.creado))}</div></div>`;
+
+      async function abrir(id) {
+        activo = id;
+        const c = chats.find((x) => x.id === id);
+        if (!c) return;
+        history.replaceState(null, "", "mensajes.html?c=" + id);
+        $("cabecera").innerHTML = `<span class="avatar lg">${esc(Renty.initials(c.con.nombre))}</span><div style="min-width:0"><div class="fw-bold">${esc(c.con.nombre)}</div><a class="small text-muted text-truncate d-block" href="propiedad.html?id=${c.propiedad.id}">${esc(c.propiedad.titulo)}</a></div>`;
+        cuerpo.innerHTML = `<div class="text-center text-muted my-auto"><span class="spinner-border spinner-border-sm"></span></div>`;
+        form.hidden = false;
+        const mensajes = await Renty.api(`/conversaciones/${id}/mensajes`);
+        if (activo !== id) return;
+        cuerpo.innerHTML = mensajes.map(burbuja).join("");
+        ultimoId = mensajes.at(-1)?.id || 0;
+        cuerpo.scrollTop = cuerpo.scrollHeight;
+        await cargarLista(); // actualiza el contador de no leídos
+      }
+
+      // Revisa cada 8 s si llegaron mensajes nuevos
+      async function actualizar() {
+        if (document.hidden) return;
+        try {
+          if (activo) {
+            const nuevos = await Renty.api(`/conversaciones/${activo}/mensajes?despues=${ultimoId}`);
+            if (nuevos.length) {
+              cuerpo.insertAdjacentHTML("beforeend", nuevos.map(burbuja).join(""));
+              ultimoId = nuevos.at(-1).id;
+              cuerpo.scrollTop = cuerpo.scrollHeight;
+            }
+          }
+          await cargarLista();
+        } catch { /* reintenta en el siguiente ciclo */ }
+      }
+
+      lista.addEventListener("click", (e) => { const b = e.target.closest("[data-chat]"); if (b) abrir(Number(b.dataset.chat)).catch((err) => Renty.aviso(err.message, "error")); });
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const txt = $("txt");
+        const texto = txt.value.trim();
+        if (!texto || !activo) return;
+        txt.value = "";
+        try {
+          const m = await Renty.api(`/conversaciones/${activo}/mensajes`, { method: "POST", body: { texto } });
+          cuerpo.insertAdjacentHTML("beforeend", burbuja(m));
+          ultimoId = Math.max(ultimoId, m.id);
+          cuerpo.scrollTop = cuerpo.scrollHeight;
+          cargarLista();
+        } catch (err) { txt.value = texto; Renty.aviso(err.message, "error"); }
+        txt.focus();
+      });
+
+      form.hidden = true;
+      $("cabecera").innerHTML = `<span class="text-muted">Selecciona una conversación</span>`;
+      try {
+        await cargarLista();
+        const pedido = Number(new URLSearchParams(location.search).get("c"));
+        const inicial = chats.find((c) => c.id === pedido) || (window.innerWidth >= 768 ? chats[0] : null);
+        if (inicial) await abrir(inicial.id);
+      } catch (err) { lista.innerHTML = `<div class="p-4 text-muted">${esc(err.message)}</div>`; }
+      setInterval(actualizar, 8000);
+    });
+  </script>
+</body>
+</html>

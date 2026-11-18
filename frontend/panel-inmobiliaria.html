@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Portafolio — Renty</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,600&display=swap" rel="stylesheet">
+  <link href="vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body data-page="panel" data-roles="inmobiliaria">
+  <div id="nav"></div>
+  <div id="subnav"></div>
+
+  <main class="container">
+    <div class="page-head d-flex flex-wrap justify-content-between align-items-end gap-3">
+      <div>
+        <p class="eyebrow mb-1">Panel de inmobiliaria</p>
+        <h1 class="h2 mb-0" id="empresa">Portafolio</h1>
+      </div>
+      <a class="btn btn-primary" href="publicar.html"><i class="bi bi-plus-lg me-1"></i>Publicar propiedad</a>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-lg-3"><div class="card stat"><div class="num" data-stat="propiedades">–</div><div class="lbl">Propiedades en portafolio</div></div></div>
+      <div class="col-6 col-lg-3"><div class="card stat"><div class="num" data-stat="prospectos_30d">–</div><div class="lbl">Prospectos en 30 días</div></div></div>
+      <div class="col-6 col-lg-3"><div class="card stat"><div class="num" data-stat="visitas_pendientes">–</div><div class="lbl">Visitas por confirmar</div></div></div>
+      <div class="col-6 col-lg-3"><div class="card stat"><div class="num" data-stat="agentes">–</div><div class="lbl">Agentes activos</div></div></div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-4 pb-2">
+        <h2 class="h5 mb-0">Portafolio</h2>
+        <div class="d-flex gap-2">
+          <label class="visually-hidden" for="fOp">Filtrar por operación</label>
+          <select class="form-select form-select-sm w-auto" id="fOp"><option value="">Renta y venta</option><option value="renta">Solo renta</option><option value="venta">Solo venta</option></select>
+          <label class="visually-hidden" for="fAg">Filtrar por agente</label>
+          <select class="form-select form-select-sm w-auto" id="fAg"><option value="">Todos los agentes</option></select>
+        </div>
+      </div>
+      <div class="table-responsive px-3 pb-2">
+        <table class="table">
+          <thead><tr><th>Propiedad</th><th>Operación</th><th>Precio</th><th>Agente</th><th>Estado</th><th class="text-end">Prospectos</th><th><span class="visually-hidden">Acciones</span></th></tr></thead>
+          <tbody id="filas"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-7">
+        <div class="card p-4 h-100">
+          <h2 class="h5 mb-2">Prospectos recientes</h2>
+          <div id="leads"></div>
+          <h2 class="h5 mt-4 mb-2">Solicitudes de visita</h2>
+          <div id="solicitudes"></div>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="card p-4 h-100">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 class="h5 mb-0">Equipo</h2>
+            <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#mAgente"><i class="bi bi-person-plus me-1"></i>Agregar agente</button>
+          </div>
+          <div id="equipo"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Agregar agente -->
+  <div class="modal fade" id="mAgente" tabindex="-1" aria-labelledby="mAgenteLbl" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <form class="modal-content" id="invitar" novalidate>
+        <div class="modal-header border-0 pb-0"><h2 class="modal-title h5" id="mAgenteLbl">Agregar agente</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button></div>
+        <div class="modal-body">
+          <div class="mb-3"><label class="form-label" for="aNombre">Nombre</label><input class="form-control" id="aNombre" required minlength="2"><div class="invalid-feedback">Escribe el nombre.</div></div>
+          <div><label class="form-label" for="aMail">Correo</label><input class="form-control" type="email" id="aMail" required><div class="invalid-feedback">Escribe un correo válido.</div></div>
+        </div>
+        <div class="modal-footer border-0 pt-0"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button><button class="btn btn-primary" type="submit">Agregar</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div id="footer"></div>
+
+  <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/panel-publicador.js"></script>
+</body>
+</html>

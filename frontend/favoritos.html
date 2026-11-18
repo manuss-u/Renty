@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Favoritos — Renty</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,600&display=swap" rel="stylesheet">
+  <link href="vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
+  <link href="vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+<body data-page="favoritos" data-roles="arrendatario">
+  <div id="nav"></div>
+  <div id="subnav"></div>
+
+  <main class="container">
+    <div class="page-head">
+      <h1 class="h2 mb-1">Favoritos</h1>
+      <p class="text-muted mb-0" id="conteo" aria-live="polite"></p>
+    </div>
+    <div class="row g-4" id="lista"></div>
+  </main>
+
+  <div id="footer"></div>
+
+  <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    Renty.ready.then(async () => {
+      const lista = document.getElementById("lista");
+      const conteo = () => {
+        const n = lista.querySelectorAll(".prop-card").length;
+        document.getElementById("conteo").textContent = Renty.plural(n, "propiedad guardada", "propiedades guardadas");
+        if (!n) lista.innerHTML = `<div class="col-12"><div class="empty-state"><i class="bi bi-heart"></i><h2 class="h5 mt-3">Todavía no guardas ninguna propiedad</h2><p class="text-muted">Toca el corazón en las que te gusten para compararlas después.</p><a class="btn btn-primary" href="propiedades.html">Explorar propiedades</a></div></div>`;
+      };
+      lista.innerHTML = Renty.cargando();
+      try {
+        lista.innerHTML = Renty.grid(await Renty.api("/favoritos"));
+        conteo();
+      } catch (err) { lista.innerHTML = Renty.falla(err); }
+
+      // Al quitar un favorito, la tarjeta sale de la lista
+      document.addEventListener("renty:favs", (e) => {
+        if (e.detail.on) return;
+        lista.querySelector(`[data-fav="${e.detail.id}"]`)?.closest("[class^='col']")?.remove();
+        conteo();
+      });
+    });
+  </script>
+</body>
+</html>
