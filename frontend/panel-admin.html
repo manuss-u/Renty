@@ -17,19 +17,19 @@
 
   <main class="container">
     <div class="page-head">
-      <p class="eyebrow mb-1">Administración</p>
+      <p class="eyebrow mb-1">Administrador</p>
       <h1 class="h2 mb-0">Moderación de propiedades</h1>
     </div>
 
-    <div class="row g-3 mb-4">
-      <div class="col-6 col-lg-3"><div class="card stat"><div class="num" data-stat="propiedades.pendientes">–</div><div class="lbl">Esperando revisión</div></div></div>
-      <div class="col-6 col-lg-3"><div class="card stat"><div class="num" data-stat="propiedades.publicadas">–</div><div class="lbl">Publicadas</div></div></div>
-      <div class="col-6 col-lg-3"><a class="card stat text-decoration-none text-body" href="admin-usuarios.html"><div class="num" data-stat="usuarios.total">–</div><div class="lbl">Usuarios</div><div class="delta" id="nuevos"></div></a></div>
-      <div class="col-6 col-lg-3"><div class="card stat"><div class="num" data-stat="actividad.conversaciones_7d">–</div><div class="lbl">Conversaciones en 7 días</div></div></div>
+    <div class="stats mb-5">
+      <div class="stat"><div class="num" data-stat="propiedades.pendientes">–</div><div class="lbl">Esperando revisión</div></div>
+      <div class="stat"><div class="num" data-stat="propiedades.publicadas">–</div><div class="lbl">Publicadas</div></div>
+      <a class="stat" href="admin-usuarios.html"><div class="num" data-stat="usuarios.total">–</div><div class="lbl">Usuarios</div><div class="delta" id="nuevos"></div></a>
+      <div class="stat"><div class="num" data-stat="actividad.conversaciones_7d">–</div><div class="lbl">Conversaciones en 7 días</div></div>
     </div>
 
-    <div class="card">
-      <div class="p-3 p-md-4 pb-0 d-flex flex-wrap gap-3 justify-content-between align-items-center">
+    <div>
+      <div class="pb-3 d-flex flex-wrap gap-3 justify-content-between align-items-center barra-filtros">
         <ul class="nav nav-pills gap-1" id="tabs" role="tablist">
           <li class="nav-item"><button class="nav-link active" data-mod="pendiente" type="button">Pendientes <span class="badge rounded-pill text-bg-light ms-1" id="nPend"></span></button></li>
           <li class="nav-item"><button class="nav-link" data-mod="aprobada" type="button">Aprobadas</button></li>
@@ -41,9 +41,9 @@
           <input class="form-control" type="search" id="q" placeholder="Título, zona, publicador o correo">
         </form>
       </div>
-      <div class="px-3 px-md-4 pt-2" id="filtroPub"></div>
-      <div class="p-3 p-md-4 pt-2" id="lista" aria-live="polite"></div>
-      <div class="text-center pb-4"><button class="btn btn-light d-none" type="button" id="mas">Ver más</button></div>
+      <div class="pt-3" id="filtroPub"></div>
+      <div class="pt-2" id="lista" aria-live="polite"></div>
+      <div class="text-center py-3"><button class="btn btn-light d-none" type="button" id="mas">Ver más</button></div>
     </div>
   </main>
 

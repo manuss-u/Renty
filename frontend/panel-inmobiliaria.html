@@ -18,21 +18,21 @@
   <main class="container">
     <div class="page-head d-flex flex-wrap justify-content-between align-items-end gap-3">
       <div>
-        <p class="eyebrow mb-1">Panel de inmobiliaria</p>
+        <p class="eyebrow mb-1">Inmobiliaria</p>
         <h1 class="h2 mb-0" id="empresa">Portafolio</h1>
       </div>
       <a class="btn btn-primary" href="publicar.html"><i class="bi bi-plus-lg me-1"></i>Publicar propiedad</a>
     </div>
 
-    <div class="row g-3 mb-4">
-      <div class="col-6 col-lg-3"><div class="card stat"><div class="num" data-stat="propiedades">–</div><div class="lbl">Propiedades en portafolio</div></div></div>
-      <div class="col-6 col-lg-3"><div class="card stat"><div class="num" data-stat="prospectos_30d">–</div><div class="lbl">Prospectos en 30 días</div></div></div>
-      <div class="col-6 col-lg-3"><div class="card stat"><div class="num" data-stat="visitas_pendientes">–</div><div class="lbl">Visitas por confirmar</div></div></div>
-      <div class="col-6 col-lg-3"><div class="card stat"><div class="num" data-stat="agentes">–</div><div class="lbl">Agentes activos</div></div></div>
+    <div class="stats mb-5">
+      <div class="stat"><div class="num" data-stat="propiedades">–</div><div class="lbl">Propiedades en portafolio</div></div>
+      <div class="stat"><div class="num" data-stat="prospectos_30d">–</div><div class="lbl">Prospectos en 30 días</div></div>
+      <div class="stat"><div class="num" data-stat="visitas_pendientes">–</div><div class="lbl">Visitas por confirmar</div></div>
+      <div class="stat"><div class="num" data-stat="agentes">–</div><div class="lbl">Agentes activos</div></div>
     </div>
 
-    <div class="card mb-4">
-      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-4 pb-2">
+    <div class="bloque mb-5">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pb-2">
         <h2 class="h5 mb-0">Portafolio</h2>
         <div class="d-flex gap-2">
           <label class="visually-hidden" for="fOp">Filtrar por operación</label>
@@ -41,7 +41,7 @@
           <select class="form-select form-select-sm w-auto" id="fAg"><option value="">Todos los agentes</option></select>
         </div>
       </div>
-      <div class="table-responsive px-3 pb-2">
+      <div class="table-responsive">
         <table class="table">
           <thead><tr><th>Propiedad</th><th>Operación</th><th>Precio</th><th>Agente</th><th>Estado</th><th class="text-end">Prospectos</th><th><span class="visually-hidden">Acciones</span></th></tr></thead>
           <tbody id="filas"></tbody>
@@ -51,7 +51,7 @@
 
     <div class="row g-4">
       <div class="col-lg-7">
-        <div class="card p-4 h-100">
+        <div class="bloque h-100">
           <h2 class="h5 mb-2">Prospectos recientes</h2>
           <div id="leads"></div>
           <h2 class="h5 mt-4 mb-2">Solicitudes de visita</h2>
@@ -59,7 +59,7 @@
         </div>
       </div>
       <div class="col-lg-5">
-        <div class="card p-4 h-100">
+        <div class="bloque h-100">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <h2 class="h5 mb-0">Equipo</h2>
             <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#mAgente"><i class="bi bi-person-plus me-1"></i>Agregar agente</button>

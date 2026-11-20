@@ -43,6 +43,8 @@
       const esDueno = s && s.id === p.publicador.id;
       const puedeContactar = !s || s.rol === "arrendatario";
       const tipo = TIPOS[p.tipo]?.nombre || p.tipo;
+      // Google Maps: el público ve la zona; quien publica y los administradores, la dirección exacta
+      const mapa = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent([p.direccion, p.zona, p.ciudad, "Colombia"].filter(Boolean).join(", "));
       const extraFotos = Math.max(p.fotos.length - 3, 0);
       const manana = new Date(Date.now() + 864e5).toISOString().slice(0, 10);
       const horas = ["08:00", "09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
@@ -75,13 +77,13 @@
         : puedeContactar
         ? `<form id="contacto" novalidate>
             <div class="row g-2 mb-2">
-              <div class="col-7"><label class="form-label" for="cFecha">Fecha de visita</label><input class="form-control" type="date" id="cFecha" min="${manana}"><div class="invalid-feedback">Elige una fecha.</div></div>
-              <div class="col-5"><label class="form-label" for="cHora">Hora</label><select class="form-select" id="cHora">${horas.map((h) => `<option value="${h}">${Renty.hora(h)}</option>`).join("")}</select></div>
+              <div class="col-6"><label class="form-label" for="cFecha">Fecha de visita</label><input class="form-control" type="date" id="cFecha" min="${manana}"><div class="invalid-feedback">Elige una fecha.</div></div>
+              <div class="col-6"><label class="form-label" for="cHora">Hora</label><select class="form-select" id="cHora">${horas.map((h) => `<option value="${h}">${Renty.hora(h)}</option>`).join("")}</select></div>
             </div>
             <div class="mb-3"><label class="form-label" for="cMsg">Mensaje</label><textarea class="form-control" id="cMsg" rows="3" maxlength="1000">Hola, me interesa esta propiedad y quisiera agendar una visita.</textarea><div class="invalid-feedback">Escribe un mensaje.</div></div>
             <div class="d-grid gap-2">
-              <button class="btn btn-primary" type="submit" data-accion="visita"><i class="bi bi-calendar-check me-1"></i>Solicitar visita</button>
-              <button class="btn btn-light" type="submit" data-accion="mensaje"><i class="bi bi-chat-dots me-1"></i>Solo enviar mensaje</button>
+              <button class="btn btn-primary" type="submit" data-accion="visita">Solicitar visita</button>
+              <button class="btn btn-light" type="submit" data-accion="mensaje">Solo enviar mensaje</button>
             </div>
           </form>`
         : `<div class="alert bg-verde-suave border-0 mb-0 small">Estás navegando como <b>${Renty.ROLES[s.rol].nombre.toLowerCase()}</b>. Las solicitudes de visita están disponibles para cuentas de arrendatario.</div>`;
@@ -105,18 +107,18 @@
           <div class="d-flex justify-content-between align-items-start gap-3">
             <div>
               <h1 class="h2 mb-1">${esc(p.titulo)}</h1>
-              <p class="text-muted mb-0"><i class="bi bi-geo-alt"></i> ${esc(p.zona)}, ${esc(p.ciudad)} · ${esc(tipo)}</p>
+              <p class="text-muted mb-0"><a class="text-muted" href="${mapa}" target="_blank" rel="noopener"><i class="bi bi-geo-alt"></i> ${esc(p.zona)}, ${esc(p.ciudad)}</a> · ${esc(tipo)}</p>
             </div>
             ${puedeContactar ? Renty.favBtn(p, "btn btn-light flex-shrink-0") : ""}
           </div>
 
-          <div class="row g-3 my-3">
-            ${p.hab ? `<div class="col-6 col-md-3"><div class="spec-tile"><b>${p.hab}</b><span>Habitaciones</span></div></div>` : ""}
-            <div class="col-6 col-md-3"><div class="spec-tile"><b>${p.banos}</b><span>Baños</span></div></div>
-            <div class="col-6 col-md-3"><div class="spec-tile"><b>${p.area} m²</b><span>Área construida</span></div></div>
-            ${p.parqueaderos ? `<div class="col-6 col-md-3"><div class="spec-tile"><b>${p.parqueaderos}</b><span>Parqueaderos</span></div></div>` : ""}
-            <div class="col-6 col-md-3"><div class="spec-tile"><b>${Renty.money(Math.round(p.precio / p.area))}</b><span>Precio por m²</span></div></div>
-          </div>
+          <ul class="ficha" aria-label="Características">
+            ${p.hab ? `<li><b>${p.hab}</b><span>${p.hab === 1 ? "Habitación" : "Habitaciones"}</span></li>` : ""}
+            <li><b>${p.banos}</b><span>${p.banos === 1 ? "Baño" : "Baños"}</span></li>
+            <li><b>${p.area} m²</b><span>Área construida</span></li>
+            ${p.parqueaderos ? `<li><b>${p.parqueaderos}</b><span>${p.parqueaderos === 1 ? "Parqueadero" : "Parqueaderos"}</span></li>` : ""}
+            <li><b>${Renty.money(Math.round(p.precio / p.area))}</b><span>Precio por m²</span></li>
+          </ul>
 
           <h2 class="h5 mt-4">Descripción</h2>
           <p style="max-width:68ch;white-space:pre-line">${esc(p.descripcion)}</p>
@@ -127,7 +129,7 @@
           </div>` : ""}
 
           <h2 class="h5 mt-4">Ubicación</h2>
-          <div class="map-placeholder"><div><i class="bi bi-geo-alt fs-3 text-terracota"></i><div class="fw-semibold text-body mt-1">${esc(p.zona)}, ${esc(p.ciudad)}</div><small>La dirección exacta se comparte al confirmar la visita</small></div></div>
+          <a class="map-link" href="${mapa}" target="_blank" rel="noopener"><div><i class="bi bi-geo-alt fs-3 text-terracota"></i><div class="fw-semibold text-body mt-1">${esc(p.zona)}, ${esc(p.ciudad)}</div><small>Ver en Google Maps<span class="visually-hidden"> (se abre en otra pestaña)</span> · ${p.direccion ? "con la dirección exacta, que no es pública" : "la dirección exacta se comparte al confirmar la visita"}</small></div></a>
         </div>
 
         <div class="col-lg-4">

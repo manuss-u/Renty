@@ -252,7 +252,7 @@ const Renty = (() => {
              <span class="d-none d-sm-inline">${esc(s.nombre.split(" ")[0])}</span><i class="bi bi-chevron-down small"></i>
            </button>
            <ul class="dropdown-menu dropdown-menu-end p-2" style="min-width:240px">
-             <li class="px-2 pt-1 pb-2"><div class="fw-bold">${esc(s.nombre)}</div><span class="role-badge mt-1"><i class="bi ${ROLES[s.rol].icon}"></i>${ROLES[s.rol].nombre}</span></li>
+             <li class="px-2 pt-1 pb-2"><div class="fw-bold">${esc(s.nombre)}</div><small class="text-muted">${esc(s.email)}</small></li>
              <li><hr class="dropdown-divider"></li>
              ${ROLES[s.rol].menu.map((m) => `<li><a class="dropdown-item rounded" href="${m.href}"><i class="bi ${m.icon} me-2"></i>${m.txt}</a></li>`).join("")}
              <li><hr class="dropdown-divider"></li>

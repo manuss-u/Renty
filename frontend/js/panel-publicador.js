@@ -149,8 +149,8 @@ Renty.ready.then(async (usuario) => {
       $("leads").innerHTML = lista.length ? lista.slice(0, 6).map((l) => `
         <div class="list-row">
           <span class="avatar">${esc(Renty.initials(l.nombre))}</span>
-          <div class="flex-grow-1" style="min-width:0"><div class="fw-semibold">${esc(l.nombre)}</div><small class="text-muted d-block text-truncate">${esc(l.propiedad)} · ${Renty.hace(l.actividad)}</small></div>
-          <span class="estado ${PROS[l.estado][0]}">${PROS[l.estado][1]}</span>
+          <div class="flex-grow-1" style="min-width:0"><div class="fw-semibold">${esc(l.nombre)}</div><small class="text-muted d-block text-truncate">${esc(l.propiedad)} · ${Renty.hace(l.actividad)}</small>
+            <span class="estado ${PROS[l.estado][0]} mt-1">${PROS[l.estado][1]}</span></div>
           <a class="btn btn-light btn-sm" href="mensajes.html?c=${l.conversacion_id}" aria-label="Escribir a ${esc(l.nombre)}"><i class="bi bi-chat-dots"></i></a>
         </div>`).join("") : vacio("Cuando alguien escriba sobre tus propiedades aparecerá aquí.", "bi-people");
     } catch (err) { $("leads").innerHTML = vacio(esc(err.message), "bi-wifi-off"); }
