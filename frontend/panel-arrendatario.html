@@ -6,7 +6,7 @@
   <title>Mi panel — Renty</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet">
   <link href="vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
   <link href="vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
   <link href="css/styles.css" rel="stylesheet">
@@ -73,32 +73,9 @@
       const vacio = (txt, icon = "bi-inbox") => `<div class="text-center text-muted py-5"><i class="bi ${icon} fs-3 d-block mb-2 text-terracota"></i>${txt}</div>`;
       const ESTADOS = { pendiente: ["revision", "Pendiente"], confirmada: ["activa", "Confirmada"], reprogramar: ["nuevo", "Proponen otra fecha"], cancelada: ["pausada", "Cancelada"] };
 
-      /* ---------- Pestañas ---------- */
-      const tabs = [...document.querySelectorAll('.pestanas [role="tab"]')];
+      /* ---------- Pestañas: cada sección se carga la primera vez que se abre ---------- */
       const cargadas = new Set();
       const CARGAR = { favoritos: cargarFavoritos, busquedas: cargarBusquedas, visitas: cargarVisitas, mensajes: cargarMensajes };
-
-      function mostrar(vista, { foco = false } = {}) {
-        if (!CARGAR[vista]) vista = "favoritos";
-        for (const t of tabs) {
-          const activa = t.dataset.vista === vista;
-          t.setAttribute("aria-selected", activa);
-          t.tabIndex = activa ? 0 : -1;
-          $("v-" + t.dataset.vista).hidden = !activa;
-          if (activa && foco) t.focus();
-        }
-        history.replaceState(null, "", "#" + vista);
-        if (!cargadas.has(vista)) { cargadas.add(vista); CARGAR[vista](); }
-      }
-      tabs.forEach((t) => t.addEventListener("click", () => mostrar(t.dataset.vista)));
-      // Flechas izquierda/derecha para moverse entre pestañas con el teclado
-      document.querySelector(".pestanas").addEventListener("keydown", (e) => {
-        const i = tabs.findIndex((t) => t.getAttribute("aria-selected") === "true");
-        const sig = e.key === "ArrowRight" ? i + 1 : e.key === "ArrowLeft" ? i - 1 : e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : null;
-        if (sig === null) return;
-        e.preventDefault();
-        mostrar(tabs[(sig + tabs.length) % tabs.length].dataset.vista, { foco: true });
-      });
 
       /* ---------- Números de cada pestaña ---------- */
       async function resumen() {
@@ -206,11 +183,10 @@
       // Al guardar o quitar un favorito (aquí o en las recomendadas), se actualizan la lista y el número
       document.addEventListener("renty:favs", () => { cargarFavoritos(); resumen(); });
 
-      // Enlaces como "panel-arrendatario.html#visitas" (p. ej. desde el menú del perfil) abren esa pestaña
-      window.addEventListener("hashchange", () => mostrar(location.hash.slice(1)));
-
       resumen(); recomendadas();
-      mostrar(location.hash.slice(1));
+      Renty.pestanas(document.querySelector(".pestanas"), {
+        alMostrar: (vista) => { if (!cargadas.has(vista)) { cargadas.add(vista); CARGAR[vista](); } }
+      });
     });
   </script>
 </body>

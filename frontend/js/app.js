@@ -32,8 +32,7 @@ const Renty = (() => {
       nombre: "Administrador", icon: "bi-shield-check", panel: "panel-admin.html",
       menu: [
         { id: "panel", txt: "Moderación", href: "panel-admin.html", icon: "bi-clipboard-check" },
-        { id: "usuarios", txt: "Usuarios", href: "admin-usuarios.html", icon: "bi-people" },
-        { id: "listado", txt: "Ver el sitio", href: "propiedades.html", icon: "bi-search" }
+        { id: "usuarios", txt: "Usuarios", href: "admin-usuarios.html", icon: "bi-people" }
       ]
     }
   };
@@ -230,6 +229,39 @@ const Renty = (() => {
     try { return await fn(); } finally { boton.disabled = false; boton.innerHTML = html; }
   }
 
+  /**
+   * Pestañas accesibles dentro de un panel. Botones [role=tab] con data-vista="x" y paneles con id "v-x".
+   * Al elegir una, solo cambia la vista; la dirección guarda la pestaña (#x) para poder enlazarla.
+   */
+  function pestanas(contenedor, { alMostrar = () => {} } = {}) {
+    const tabs = [...contenedor.querySelectorAll('[role="tab"]')];
+    const vistas = tabs.map((t) => t.dataset.vista);
+    function mostrar(vista, { foco = false } = {}) {
+      if (!vistas.includes(vista)) vista = vistas[0];
+      for (const t of tabs) {
+        const activa = t.dataset.vista === vista;
+        t.setAttribute("aria-selected", activa);
+        t.tabIndex = activa ? 0 : -1;
+        document.getElementById("v-" + t.dataset.vista).hidden = !activa;
+        if (activa && foco) t.focus();
+      }
+      history.replaceState(null, "", location.pathname + location.search + "#" + vista);
+      alMostrar(vista);
+    }
+    tabs.forEach((t) => t.addEventListener("click", () => mostrar(t.dataset.vista)));
+    // Flechas, Inicio y Fin para moverse entre pestañas con el teclado
+    contenedor.addEventListener("keydown", (e) => {
+      const i = tabs.findIndex((t) => t.getAttribute("aria-selected") === "true");
+      const sig = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
+      if (sig === undefined) return;
+      e.preventDefault();
+      mostrar(vistas[(sig + tabs.length) % tabs.length], { foco: true });
+    });
+    window.addEventListener("hashchange", () => mostrar(location.hash.slice(1)));
+    mostrar(location.hash.slice(1));
+    return { mostrar };
+  }
+
   const cargando = (texto = "Cargando…") =>
     `<div class="col-12 text-center text-muted py-5"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>${texto}</div>`;
   const falla = (err) =>
@@ -360,6 +392,6 @@ const Renty = (() => {
   return {
     ROLES, DEMO, DEMO_PASSWORD, ready, api, session, login, register, logout, toggleFav,
     money, price, plural, fecha, hora, hace, card, grid, media, art, specs, favBtn, esc, initials,
-    aviso, erroresEnForm, ocupado, cargando, falla
+    aviso, erroresEnForm, ocupado, cargando, falla, pestanas
   };
 })();

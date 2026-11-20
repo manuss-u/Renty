@@ -21,6 +21,9 @@ Renty.ready.then(async (usuario) => {
     try {
       const r = await Renty.api("/panel/resumen");
       document.querySelectorAll("[data-stat]").forEach((el) => (el.textContent = num(r[el.dataset.stat])));
+      const partes = [Renty.plural(r.activas, "publicada", "publicadas"), `${num(r.vistas)} vistas en total`];
+      if (esInmo) partes.push(Renty.plural(r.prospectos_30d, "prospecto en 30 días", "prospectos en 30 días"));
+      if ($("resumenProps")) $("resumenProps").textContent = partes.join(" · ");
       const avisos = [];
       if (r.rechazadas) avisos.push(`<b>${Renty.plural(r.rechazadas, "propiedad fue rechazada", "propiedades fueron rechazadas")}.</b> Revisa el motivo en la tabla y corrígelas para reenviarlas.`);
       if (r.en_revision) avisos.push(`${Renty.plural(r.en_revision, "propiedad está", "propiedades están")} en revisión. Las publicaremos en cuanto un administrador las apruebe.`);
@@ -115,7 +118,7 @@ Renty.ready.then(async (usuario) => {
     if (!$("solicitudes")) return;
     try {
       const hoy = new Date().toISOString().slice(0, 10);
-      const lista = (await Renty.api("/visitas")).filter((v) => v.fecha >= hoy && v.estado !== "cancelada").slice(0, 6);
+      const lista = (await Renty.api("/visitas")).filter((v) => v.fecha >= hoy && v.estado !== "cancelada");
       $("solicitudes").innerHTML = lista.length ? lista.map((v) => `
         <div class="list-row align-items-start">
           <span class="avatar">${esc(Renty.initials(v.arrendatario.nombre))}</span>
@@ -146,7 +149,7 @@ Renty.ready.then(async (usuario) => {
     if (!$("leads")) return;
     try {
       const lista = await Renty.api("/prospectos");
-      $("leads").innerHTML = lista.length ? lista.slice(0, 6).map((l) => `
+      $("leads").innerHTML = lista.length ? lista.map((l) => `
         <div class="list-row">
           <span class="avatar">${esc(Renty.initials(l.nombre))}</span>
           <div class="flex-grow-1" style="min-width:0"><div class="fw-semibold">${esc(l.nombre)}</div><small class="text-muted d-block text-truncate">${esc(l.propiedad)} · ${Renty.hace(l.actividad)}</small>
@@ -159,6 +162,7 @@ Renty.ready.then(async (usuario) => {
   /* ---------- Equipo (inmobiliaria) ---------- */
   function equipo() {
     if (!$("equipo")) return;
+    $("nEquipo").textContent = agentes.length;
     $("equipo").innerHTML = agentes.length ? agentes.map((a) => `
       <div class="list-row">
         <span class="avatar verde">${esc(Renty.initials(a.nombre))}</span>
@@ -203,4 +207,5 @@ Renty.ready.then(async (usuario) => {
 
   if ($("empresa")) $("empresa").textContent = usuario.nombre;
   resumen(); cargarPropiedades(); solicitudes(); prospectos();
+  Renty.pestanas(document.querySelector(".pestanas"));
 });

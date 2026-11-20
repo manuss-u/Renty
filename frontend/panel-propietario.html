@@ -6,7 +6,7 @@
   <title>Mis propiedades — Renty</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet">
   <link href="vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
   <link href="vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
   <link href="css/styles.css" rel="stylesheet">
@@ -24,38 +24,35 @@
       <a class="btn btn-primary" href="publicar.html"><i class="bi bi-plus-lg me-1"></i>Publicar propiedad</a>
     </div>
 
-    <div class="stats mb-5">
-      <div class="stat"><div class="num" data-stat="activas">–</div><div class="lbl">Propiedades publicadas</div></div>
-      <div class="stat"><div class="num" data-stat="vistas">–</div><div class="lbl">Vistas en total</div></div>
-      <div class="stat"><div class="num" data-stat="contactos">–</div><div class="lbl">Personas interesadas</div></div>
-      <div class="stat"><div class="num" data-stat="visitas_pendientes">–</div><div class="lbl">Visitas por confirmar</div></div>
+    <!-- Secciones del panel: al elegir una solo cambia la vista de abajo -->
+    <div class="pestanas" role="tablist" aria-label="Secciones de tu panel">
+      <button type="button" role="tab" id="t-propiedades" aria-controls="v-propiedades" aria-selected="true" data-vista="propiedades">Mis propiedades <span class="cuenta" data-stat="propiedades"></span></button>
+      <button type="button" role="tab" id="t-visitas" aria-controls="v-visitas" aria-selected="false" tabindex="-1" data-vista="visitas">Solicitudes de visita <span class="cuenta" data-stat="visitas_pendientes"></span></button>
+      <button type="button" role="tab" id="t-interesados" aria-controls="v-interesados" aria-selected="false" tabindex="-1" data-vista="interesados">Interesados <span class="cuenta" data-stat="contactos"></span></button>
     </div>
 
-    <div class="row g-4">
-      <div class="col-xl-8">
-        <div class="bloque">
-          <h2 class="h5 mb-2">Mis propiedades</h2>
-          <div class="table-responsive">
-            <table class="table">
-              <thead><tr><th>Propiedad</th><th>Precio</th><th>Estado</th><th class="text-end">Vistas</th><th class="text-end">Contactos</th><th><span class="visually-hidden">Acciones</span></th></tr></thead>
-              <tbody id="filas"></tbody>
-            </table>
-          </div>
-        </div>
+    <section id="v-propiedades" role="tabpanel" aria-labelledby="t-propiedades">
+      <p class="text-muted mb-2" id="resumenProps"></p>
+      <div class="table-responsive">
+        <table class="table">
+          <thead><tr><th>Propiedad</th><th>Precio</th><th>Estado</th><th class="text-end">Vistas</th><th class="text-end">Contactos</th><th><span class="visually-hidden">Acciones</span></th></tr></thead>
+          <tbody id="filas"></tbody>
+        </table>
       </div>
+    </section>
 
-      <div class="col-xl-4">
-        <div class="bloque mb-4">
-          <h2 class="h5 mb-2">Solicitudes de visita</h2>
-          <div id="solicitudes"></div>
-        </div>
-        <div class="bloque">
-          <h2 class="h5 mb-2">Interesados recientes</h2>
-          <div id="leads"></div>
-          <a class="btn btn-light w-100 mt-3" href="mensajes.html">Ir a mensajes</a>
-        </div>
+    <section id="v-visitas" role="tabpanel" aria-labelledby="t-visitas" hidden>
+      <p class="text-muted mb-1">Confirma la visita o pide otra fecha. Le avisamos a la persona por mensaje.</p>
+      <div id="solicitudes"></div>
+    </section>
+
+    <section id="v-interesados" role="tabpanel" aria-labelledby="t-interesados" hidden>
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <p class="text-muted mb-0">Personas que escribieron sobre tus propiedades.</p>
+        <a class="small fw-semibold text-nowrap ms-3" href="mensajes.html">Abrir mensajes</a>
       </div>
-    </div>
+      <div id="leads"></div>
+    </section>
   </main>
 
   <div id="footer"></div>

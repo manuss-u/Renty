@@ -6,7 +6,7 @@
   <title>Portafolio — Renty</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet">
   <link href="vendor/bootstrap/bootstrap.min.css" rel="stylesheet">
   <link href="vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
   <link href="css/styles.css" rel="stylesheet">
@@ -24,16 +24,17 @@
       <a class="btn btn-primary" href="publicar.html"><i class="bi bi-plus-lg me-1"></i>Publicar propiedad</a>
     </div>
 
-    <div class="stats mb-5">
-      <div class="stat"><div class="num" data-stat="propiedades">–</div><div class="lbl">Propiedades en portafolio</div></div>
-      <div class="stat"><div class="num" data-stat="prospectos_30d">–</div><div class="lbl">Prospectos en 30 días</div></div>
-      <div class="stat"><div class="num" data-stat="visitas_pendientes">–</div><div class="lbl">Visitas por confirmar</div></div>
-      <div class="stat"><div class="num" data-stat="agentes">–</div><div class="lbl">Agentes activos</div></div>
+    <!-- Secciones del panel: al elegir una solo cambia la vista de abajo -->
+    <div class="pestanas" role="tablist" aria-label="Secciones de tu panel">
+      <button type="button" role="tab" id="t-portafolio" aria-controls="v-portafolio" aria-selected="true" data-vista="portafolio">Portafolio <span class="cuenta" data-stat="propiedades"></span></button>
+      <button type="button" role="tab" id="t-prospectos" aria-controls="v-prospectos" aria-selected="false" tabindex="-1" data-vista="prospectos">Prospectos <span class="cuenta" data-stat="contactos"></span></button>
+      <button type="button" role="tab" id="t-visitas" aria-controls="v-visitas" aria-selected="false" tabindex="-1" data-vista="visitas">Solicitudes de visita <span class="cuenta" data-stat="visitas_pendientes"></span></button>
+      <button type="button" role="tab" id="t-equipo" aria-controls="v-equipo" aria-selected="false" tabindex="-1" data-vista="equipo">Equipo <span class="cuenta" id="nEquipo"></span></button>
     </div>
 
-    <div class="bloque mb-5">
-      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pb-2">
-        <h2 class="h5 mb-0">Portafolio</h2>
+    <section id="v-portafolio" role="tabpanel" aria-labelledby="t-portafolio">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+        <p class="text-muted mb-0" id="resumenProps"></p>
         <div class="d-flex gap-2">
           <label class="visually-hidden" for="fOp">Filtrar por operación</label>
           <select class="form-select form-select-sm w-auto" id="fOp"><option value="">Renta y venta</option><option value="renta">Solo renta</option><option value="venta">Solo venta</option></select>
@@ -47,27 +48,28 @@
           <tbody id="filas"></tbody>
         </table>
       </div>
-    </div>
+    </section>
 
-    <div class="row g-4">
-      <div class="col-lg-7">
-        <div class="bloque h-100">
-          <h2 class="h5 mb-2">Prospectos recientes</h2>
-          <div id="leads"></div>
-          <h2 class="h5 mt-4 mb-2">Solicitudes de visita</h2>
-          <div id="solicitudes"></div>
-        </div>
+    <section id="v-prospectos" role="tabpanel" aria-labelledby="t-prospectos" hidden>
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <p class="text-muted mb-0">Personas que escribieron sobre tus propiedades.</p>
+        <a class="small fw-semibold text-nowrap ms-3" href="mensajes.html">Abrir mensajes</a>
       </div>
-      <div class="col-lg-5">
-        <div class="bloque h-100">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <h2 class="h5 mb-0">Equipo</h2>
-            <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#mAgente"><i class="bi bi-person-plus me-1"></i>Agregar agente</button>
-          </div>
-          <div id="equipo"></div>
-        </div>
+      <div id="leads"></div>
+    </section>
+
+    <section id="v-visitas" role="tabpanel" aria-labelledby="t-visitas" hidden>
+      <p class="text-muted mb-1">Confirma la visita o pide otra fecha. Le avisamos a la persona por mensaje.</p>
+      <div id="solicitudes"></div>
+    </section>
+
+    <section id="v-equipo" role="tabpanel" aria-labelledby="t-equipo" hidden>
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <p class="text-muted mb-0">Asigna cada propiedad a un agente desde la pestaña Portafolio.</p>
+        <button class="btn btn-light btn-sm ms-3 text-nowrap" data-bs-toggle="modal" data-bs-target="#mAgente"><i class="bi bi-person-plus me-1"></i>Agregar agente</button>
       </div>
-    </div>
+      <div id="equipo"></div>
+    </section>
   </main>
 
   <!-- Agregar agente -->
