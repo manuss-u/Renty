@@ -6,8 +6,8 @@ const Renty = (() => {
     arrendatario: {
       nombre: "Arrendatario", icon: "bi-search-heart", panel: "panel-arrendatario.html",
       menu: [
-        { id: "panel", txt: "Resumen", href: "panel-arrendatario.html", icon: "bi-grid" },
-        { id: "favoritos", txt: "Favoritos", href: "favoritos.html", icon: "bi-heart" },
+        { id: "panel", txt: "Mi panel", href: "panel-arrendatario.html", icon: "bi-grid" },
+        { id: "favoritos", txt: "Favoritos", href: "panel-arrendatario.html#favoritos", icon: "bi-heart", soloMenu: true },
         { id: "mensajes", txt: "Mensajes", href: "mensajes.html", icon: "bi-chat-dots" },
         { id: "listado", txt: "Buscar propiedades", href: "propiedades.html", icon: "bi-search" }
       ]
@@ -287,7 +287,7 @@ const Renty = (() => {
     if (!el || !usuario) return;
     const page = document.body.dataset.page;
     el.innerHTML = `<div class="subnav"><div class="container"><ul class="nav">
-      ${ROLES[usuario.rol].menu.map((m) => `<li class="nav-item"><a class="nav-link ${m.id === page ? "active" : ""}" ${m.id === page ? 'aria-current="page"' : ""} href="${m.href}"><i class="bi ${m.icon} me-1"></i>${m.txt}</a></li>`).join("")}
+      ${ROLES[usuario.rol].menu.filter((m) => !m.soloMenu).map((m) => `<li class="nav-item"><a class="nav-link ${m.id === page ? "active" : ""}" ${m.id === page ? 'aria-current="page"' : ""} href="${m.href}"><i class="bi ${m.icon} me-1"></i>${m.txt}</a></li>`).join("")}
     </ul></div></div>`;
   }
 

@@ -24,41 +24,39 @@
       <a class="btn btn-primary" href="propiedades.html"><i class="bi bi-search me-1"></i>Buscar propiedades</a>
     </div>
 
-    <div class="stats mb-5">
-      <a class="stat" href="favoritos.html"><div class="num" id="nFavs">–</div><div class="lbl">Favoritos guardados</div></a>
-      <div class="stat"><div class="num" id="nBusq">–</div><div class="lbl">Búsquedas guardadas</div></div>
-      <div class="stat"><div class="num" id="nVis">–</div><div class="lbl">Visitas próximas</div></div>
-      <a class="stat" href="mensajes.html"><div class="num" id="nMsg">–</div><div class="lbl" id="lMsg">Mensajes sin leer</div></a>
+    <!-- Secciones del panel: al elegir una solo cambia la vista de abajo -->
+    <div class="pestanas" role="tablist" aria-label="Secciones de tu panel">
+      <button type="button" role="tab" id="t-favoritos" aria-controls="v-favoritos" aria-selected="true" data-vista="favoritos">Favoritos <span class="cuenta" id="nFavs"></span></button>
+      <button type="button" role="tab" id="t-busquedas" aria-controls="v-busquedas" aria-selected="false" tabindex="-1" data-vista="busquedas">Búsquedas guardadas <span class="cuenta" id="nBusq"></span></button>
+      <button type="button" role="tab" id="t-visitas" aria-controls="v-visitas" aria-selected="false" tabindex="-1" data-vista="visitas">Visitas <span class="cuenta" id="nVis"></span></button>
+      <button type="button" role="tab" id="t-mensajes" aria-controls="v-mensajes" aria-selected="false" tabindex="-1" data-vista="mensajes">Mensajes <span class="cuenta" id="nMsg"></span></button>
     </div>
 
-    <div class="row g-4">
-      <div class="col-lg-7">
-        <div class="bloque h-100">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <h2 class="h5 mb-0">Búsquedas guardadas</h2>
-            <a class="small fw-semibold" href="propiedades.html">Nueva búsqueda</a>
-          </div>
-          <div id="busquedas"></div>
-        </div>
-      </div>
-
-      <div class="col-lg-5">
-        <div class="bloque h-100">
-          <h2 class="h5 mb-2">Próximas visitas</h2>
-          <div id="visitas"></div>
-        </div>
-      </div>
-    </div>
-
-    <section class="mt-5">
-      <div class="d-flex justify-content-between align-items-end mb-3">
-        <h2 class="h4 mb-0">Tus favoritos</h2>
-        <a class="fw-semibold" href="favoritos.html">Ver todos</a>
-      </div>
+    <section id="v-favoritos" role="tabpanel" aria-labelledby="t-favoritos">
       <div class="row g-4" id="favs"></div>
     </section>
 
-    <section class="mt-5">
+    <section id="v-busquedas" role="tabpanel" aria-labelledby="t-busquedas" hidden>
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <p class="text-muted mb-0">Te mostramos cuántas propiedades nuevas aparecieron desde la última vez que abriste cada búsqueda.</p>
+        <a class="small fw-semibold text-nowrap ms-3" href="propiedades.html">Nueva búsqueda</a>
+      </div>
+      <div id="busquedas"></div>
+    </section>
+
+    <section id="v-visitas" role="tabpanel" aria-labelledby="t-visitas" hidden>
+      <div id="visitas"></div>
+    </section>
+
+    <section id="v-mensajes" role="tabpanel" aria-labelledby="t-mensajes" hidden>
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <p class="text-muted mb-0">Tus conversaciones con propietarios e inmobiliarias.</p>
+        <a class="small fw-semibold text-nowrap ms-3" href="mensajes.html">Abrir mensajes</a>
+      </div>
+      <div id="conversaciones"></div>
+    </section>
+
+    <section class="bloque mt-5">
       <h2 class="h4 mb-3">Recomendadas para ti</h2>
       <div class="row g-4" id="recs"></div>
     </section>
@@ -72,19 +70,58 @@
     Renty.ready.then(async () => {
       const $ = (id) => document.getElementById(id);
       const esc = Renty.esc;
-      const vacio = (txt, icon = "bi-inbox") => `<div class="text-center text-muted py-4"><i class="bi ${icon} fs-4 d-block mb-2 text-terracota"></i>${txt}</div>`;
-      const ESTADOS = { pendiente: ["revision", "Pendiente"], confirmada: ["activa", "Confirmada"], reprogramar: ["nuevo", "Reprogramar"], cancelada: ["pausada", "Cancelada"] };
+      const vacio = (txt, icon = "bi-inbox") => `<div class="text-center text-muted py-5"><i class="bi ${icon} fs-3 d-block mb-2 text-terracota"></i>${txt}</div>`;
+      const ESTADOS = { pendiente: ["revision", "Pendiente"], confirmada: ["activa", "Confirmada"], reprogramar: ["nuevo", "Proponen otra fecha"], cancelada: ["pausada", "Cancelada"] };
 
+      /* ---------- Pestañas ---------- */
+      const tabs = [...document.querySelectorAll('.pestanas [role="tab"]')];
+      const cargadas = new Set();
+      const CARGAR = { favoritos: cargarFavoritos, busquedas: cargarBusquedas, visitas: cargarVisitas, mensajes: cargarMensajes };
+
+      function mostrar(vista, { foco = false } = {}) {
+        if (!CARGAR[vista]) vista = "favoritos";
+        for (const t of tabs) {
+          const activa = t.dataset.vista === vista;
+          t.setAttribute("aria-selected", activa);
+          t.tabIndex = activa ? 0 : -1;
+          $("v-" + t.dataset.vista).hidden = !activa;
+          if (activa && foco) t.focus();
+        }
+        history.replaceState(null, "", "#" + vista);
+        if (!cargadas.has(vista)) { cargadas.add(vista); CARGAR[vista](); }
+      }
+      tabs.forEach((t) => t.addEventListener("click", () => mostrar(t.dataset.vista)));
+      // Flechas izquierda/derecha para moverse entre pestañas con el teclado
+      document.querySelector(".pestanas").addEventListener("keydown", (e) => {
+        const i = tabs.findIndex((t) => t.getAttribute("aria-selected") === "true");
+        const sig = e.key === "ArrowRight" ? i + 1 : e.key === "ArrowLeft" ? i - 1 : e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : null;
+        if (sig === null) return;
+        e.preventDefault();
+        mostrar(tabs[(sig + tabs.length) % tabs.length].dataset.vista, { foco: true });
+      });
+
+      /* ---------- Números de cada pestaña ---------- */
       async function resumen() {
         try {
           const r = await Renty.api("/panel/resumen");
           $("nFavs").textContent = r.favoritos; $("nBusq").textContent = r.busquedas;
-          $("nVis").textContent = r.visitas_proximas; $("nMsg").textContent = r.no_leidos;
-          $("lMsg").textContent = r.no_leidos === 1 ? "Mensaje sin leer" : "Mensajes sin leer";
-        } catch { /* las cifras quedan en – */ }
+          $("nVis").textContent = r.visitas_proximas; $("nMsg").textContent = r.no_leidos || "";
+          $("t-mensajes").setAttribute("aria-label", r.no_leidos ? `Mensajes, ${Renty.plural(r.no_leidos, "sin leer", "sin leer")}` : "Mensajes");
+        } catch { /* las pestañas funcionan aunque falten los números */ }
       }
 
-      async function busquedas() {
+      /* ---------- Favoritos ---------- */
+      async function cargarFavoritos() {
+        $("favs").innerHTML = Renty.cargando();
+        try {
+          const favs = await Renty.api("/favoritos");
+          $("favs").innerHTML = favs.length ? Renty.grid(favs)
+            : `<div class="col-12">${vacio('Aún no tienes favoritos. Toca el corazón en cualquier propiedad para guardarla.<br><a href="propiedades.html">Buscar propiedades</a>', "bi-heart")}</div>`;
+        } catch (err) { $("favs").innerHTML = Renty.falla(err); }
+      }
+
+      /* ---------- Búsquedas guardadas ---------- */
+      async function cargarBusquedas() {
         try {
           const lista = await Renty.api("/busquedas");
           $("busquedas").innerHTML = lista.length ? lista.map((b) => `
@@ -95,7 +132,7 @@
               <a class="btn btn-light btn-sm" href="propiedades.html?${esc(b.filtros)}" data-ver="${b.id}">Ver</a>
               <button class="btn btn-light btn-sm" data-borrar="${b.id}" aria-label="Eliminar búsqueda ${esc(b.nombre)}"><i class="bi bi-trash"></i></button>
             </div>`).join("")
-            : vacio('Guarda una búsqueda desde el listado y te avisaremos de las propiedades nuevas.', "bi-bell");
+            : vacio('Guarda una búsqueda desde el listado y te avisaremos de las propiedades nuevas.<br><a href="propiedades.html">Ir a buscar</a>', "bi-bell");
         } catch (err) { $("busquedas").innerHTML = vacio(esc(err.message), "bi-wifi-off"); }
       }
       $("busquedas").addEventListener("click", async (e) => {
@@ -103,47 +140,77 @@
         if (ver) { e.preventDefault(); Renty.api(`/busquedas/${ver.dataset.ver}/revisada`, { method: "POST" }).finally(() => location.href = ver.href); }
         const borrar = e.target.closest("[data-borrar]");
         if (borrar && confirm("¿Eliminar esta búsqueda guardada?")) {
-          try { await Renty.api("/busquedas/" + borrar.dataset.borrar, { method: "DELETE" }); busquedas(); resumen(); }
+          try { await Renty.api("/busquedas/" + borrar.dataset.borrar, { method: "DELETE" }); cargarBusquedas(); resumen(); }
           catch (err) { Renty.aviso(err.message, "error"); }
         }
       });
 
-      async function visitas() {
+      /* ---------- Visitas ---------- */
+      const filaVisita = (v, pasada) => {
+        const [clase, txt] = ESTADOS[v.estado];
+        return `
+        <div class="list-row ${pasada ? "opacity-75" : ""}">
+          <div class="text-center bg-terracota-suave rounded-3 px-3 py-2" style="min-width:62px"><div class="small text-terracota fw-bold text-uppercase">${esc(Renty.fecha(v.fecha, { month: "short" }).replace(".", ""))}</div><div class="fs-5 fw-bold lh-1">${Number(v.fecha.slice(8))}</div></div>
+          <div class="flex-grow-1" style="min-width:0"><a class="fw-semibold text-body text-decoration-none d-block text-truncate" href="propiedad.html?id=${v.propiedad.id}">${esc(v.propiedad.titulo)}</a>
+            <small class="text-muted">${esc(Renty.fecha(v.fecha, { weekday: "long" }))}${v.hora ? " · " + Renty.hora(v.hora) : ""} · ${esc(v.propiedad.zona)} · con ${esc(v.publicador.nombre)}</small>
+            <div><span class="estado ${clase}">${txt}</span></div></div>
+          ${pasada ? "" : `<div class="dropdown"><button class="btn btn-light btn-sm" data-bs-toggle="dropdown" aria-label="Opciones de la visita"><i class="bi bi-three-dots"></i></button>
+            <ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="mensajes.html">Escribir a ${esc(v.publicador.nombre)}</a></li><li><button class="dropdown-item text-danger" data-cancelar="${v.id}">Cancelar visita</button></li></ul></div>`}
+        </div>`;
+      };
+      async function cargarVisitas() {
         try {
           const hoy = new Date().toISOString().slice(0, 10);
-          const lista = (await Renty.api("/visitas")).filter((v) => v.fecha >= hoy && v.estado !== "cancelada");
-          $("visitas").innerHTML = lista.length ? lista.map((v) => {
-            const [clase, txt] = ESTADOS[v.estado];
-            return `
-            <div class="list-row">
-              <div class="text-center bg-terracota-suave rounded-3 px-3 py-2"><div class="small text-terracota fw-bold text-uppercase">${esc(Renty.fecha(v.fecha, { month: "short" }).replace(".", ""))}</div><div class="fs-5 fw-bold lh-1">${Number(v.fecha.slice(8))}</div></div>
-              <div class="flex-grow-1" style="min-width:0"><a class="fw-semibold text-body text-decoration-none d-block text-truncate" href="propiedad.html?id=${v.propiedad.id}">${esc(v.propiedad.titulo)}</a><small class="text-muted">${Renty.hora(v.hora)} · ${esc(v.propiedad.zona)}</small></div>
-              <span class="estado ${clase}">${txt}</span>
-              <div class="dropdown"><button class="btn btn-light btn-sm" data-bs-toggle="dropdown" aria-label="Opciones de la visita"><i class="bi bi-three-dots"></i></button>
-                <ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="mensajes.html">Escribir a ${esc(v.publicador.nombre)}</a></li><li><button class="dropdown-item text-danger" data-cancelar="${v.id}">Cancelar visita</button></li></ul></div>
-            </div>`;
-          }).join("") : vacio('No tienes visitas agendadas. Solicítalas desde la página de cada propiedad.', "bi-calendar3");
+          const todas = await Renty.api("/visitas");
+          const proximas = todas.filter((v) => v.fecha >= hoy && v.estado !== "cancelada");
+          const anteriores = todas.filter((v) => !proximas.includes(v));
+          $("visitas").innerHTML = (proximas.length ? proximas.map((v) => filaVisita(v, false)).join("")
+              : vacio("No tienes visitas próximas. Solicítalas desde la página de cada propiedad.", "bi-calendar3"))
+            + (anteriores.length ? `<h2 class="h6 text-muted text-uppercase mt-4 mb-0" style="letter-spacing:.06em">Anteriores y canceladas</h2>${anteriores.map((v) => filaVisita(v, true)).join("")}` : "");
         } catch (err) { $("visitas").innerHTML = vacio(esc(err.message), "bi-wifi-off"); }
       }
       $("visitas").addEventListener("click", async (e) => {
         const b = e.target.closest("[data-cancelar]");
         if (!b || !confirm("¿Cancelar esta visita?")) return;
-        try { await Renty.api("/visitas/" + b.dataset.cancelar, { method: "PATCH", body: { estado: "cancelada" } }); Renty.aviso("Visita cancelada"); visitas(); resumen(); }
+        try { await Renty.api("/visitas/" + b.dataset.cancelar, { method: "PATCH", body: { estado: "cancelada" } }); Renty.aviso("Visita cancelada"); cargarVisitas(); resumen(); }
         catch (err) { Renty.aviso(err.message, "error"); }
       });
 
-      async function propiedades() {
-        $("favs").innerHTML = $("recs").innerHTML = Renty.cargando();
+      /* ---------- Mensajes ---------- */
+      async function cargarMensajes() {
         try {
-          const [favs, recs] = await Promise.all([Renty.api("/favoritos"), Renty.api("/propiedades?operacion=renta&limite=9")]);
-          $("favs").innerHTML = favs.length ? Renty.grid(favs.slice(0, 3))
-            : `<div class="col-12"><div class="empty-state"><i class="bi bi-heart"></i><p class="mt-2 mb-0 text-muted">Aún no tienes favoritos. Toca el corazón en cualquier propiedad para guardarla.</p></div></div>`;
-          $("recs").innerHTML = Renty.grid(recs.propiedades.filter((p) => !p.es_favorito).slice(0, 3));
-        } catch (err) { $("favs").innerHTML = Renty.falla(err); $("recs").innerHTML = ""; }
+          const lista = await Renty.api("/conversaciones");
+          $("conversaciones").innerHTML = lista.length ? lista.map((c) => `
+            <a class="list-row text-decoration-none text-body" href="mensajes.html?c=${c.id}">
+              <span class="avatar">${esc(Renty.initials(c.con.nombre))}</span>
+              <div class="flex-grow-1" style="min-width:0">
+                <div class="d-flex justify-content-between gap-2"><span class="fw-semibold text-truncate">${esc(c.con.nombre)}</span><small class="text-muted text-nowrap">${c.ultimo ? Renty.hace(c.ultimo.creado) : ""}</small></div>
+                <small class="text-terracota d-block text-truncate">${esc(c.propiedad.titulo)}</small>
+                <small class="d-block text-truncate ${c.no_leidos ? "fw-semibold" : "text-muted"}">${c.ultimo ? (c.ultimo.mio ? "Tú: " : "") + esc(c.ultimo.texto) : ""}</small>
+              </div>
+              ${c.no_leidos ? `<span class="estado nuevo">${Renty.plural(c.no_leidos, "sin leer", "sin leer")}</span>` : ""}
+            </a>`).join("")
+            : vacio('Aún no tienes conversaciones. Escribe desde la página de una propiedad que te interese.', "bi-chat-dots");
+        } catch (err) { $("conversaciones").innerHTML = vacio(esc(err.message), "bi-wifi-off"); }
       }
-      document.addEventListener("renty:favs", () => { propiedades(); resumen(); });
 
-      resumen(); busquedas(); visitas(); propiedades();
+      /* ---------- Recomendadas ---------- */
+      async function recomendadas() {
+        $("recs").innerHTML = Renty.cargando();
+        try {
+          const r = await Renty.api("/propiedades?operacion=renta&limite=9");
+          $("recs").innerHTML = Renty.grid(r.propiedades.filter((p) => !p.es_favorito).slice(0, 3));
+        } catch (err) { $("recs").innerHTML = Renty.falla(err); }
+      }
+
+      // Al guardar o quitar un favorito (aquí o en las recomendadas), se actualizan la lista y el número
+      document.addEventListener("renty:favs", () => { cargarFavoritos(); resumen(); });
+
+      // Enlaces como "panel-arrendatario.html#visitas" (p. ej. desde el menú del perfil) abren esa pestaña
+      window.addEventListener("hashchange", () => mostrar(location.hash.slice(1)));
+
+      resumen(); recomendadas();
+      mostrar(location.hash.slice(1));
     });
   </script>
 </body>
