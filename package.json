@@ -14,12 +14,21 @@
     "migrate": "node backend/scripts/migrar.js",
     "seed": "node backend/src/seed.js",
     "crear-admin": "node backend/scripts/crear-admin.js",
-    "test": "node --test --test-concurrency=1 backend/test/*.test.js"
+    "test": "node --test --test-concurrency=1 backend/test/*.test.js",
+    "test:e2e": "start-server-and-test e2e:servidor http://localhost:3100/api/salud e2e:correr",
+    "test:e2e:abrir": "start-server-and-test e2e:servidor http://localhost:3100/api/salud e2e:abrir",
+    "e2e:servidor": "node cypress/servidor.js",
+    "e2e:correr": "cypress run",
+    "e2e:abrir": "cypress open --e2e"
   },
   "dependencies": {
     "express": "^5.1.0",
     "express-rate-limit": "^8.7.4",
     "multer": "^2.5.0",
     "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "cypress": "^16.3.0",
+    "start-server-and-test": "^3.0.13"
   }
 }

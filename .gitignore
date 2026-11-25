@@ -2,3 +2,6 @@ node_modules/
 backend/uploads/*
 !backend/uploads/.gitkeep
 .env
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/

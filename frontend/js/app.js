@@ -220,6 +220,7 @@ const Renty = (() => {
 
   /** Deshabilita el botón mientras corre la promesa. */
   async function ocupado(boton, fn) {
+    if (!boton) return fn();
     const html = boton.innerHTML;
     boton.disabled = true;
     boton.innerHTML = `<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>${boton.textContent.trim()}`;
@@ -252,6 +253,7 @@ const Renty = (() => {
     });
     window.addEventListener("hashchange", () => mostrar(location.hash.slice(1)));
     mostrar(location.hash.slice(1));
+    contenedor.dataset.listo = ""; // las pruebas de interfaz esperan esta marca antes de hacer clic
     return { mostrar };
   }
 
