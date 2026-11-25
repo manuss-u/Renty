@@ -1,4 +1,4 @@
-# PostgreSQL para desarrollo local:  docker compose up -d
+# docker compose up -d
 services:
   db:
     image: postgres:16
@@ -11,7 +11,6 @@ services:
       - "5432:5432"
     volumes:
       - renty-db:/var/lib/postgresql/data
-      # Crea también la base de pruebas (renty_test) la primera vez
       - ./backend/scripts/crear-bd-pruebas.sql:/docker-entrypoint-initdb.d/crear-bd-pruebas.sql:ro
 volumes:
   renty-db:

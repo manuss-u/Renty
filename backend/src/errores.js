@@ -10,10 +10,9 @@ export class HttpError extends Error {
 export const noEncontrado = (que = "Recurso", femenino = false) => new HttpError(404, `${que} no ${femenino ? "encontrada" : "encontrado"}`);
 export const prohibido = (msg = "No tienes permiso para esta acción") => new HttpError(403, msg);
 
-/* ---------- Validación ---------- */
-// Cada validador recibe el valor crudo y devuelve el valor limpio, o lanza un mensaje.
+//Validación
 class ErrorCampo extends Error {}
-// Un campo enviado varias veces llega como arreglo: solo `lista` lo acepta.
+// Un campo enviado varias veces llega como arreglo
 const unico = (x) => { if (Array.isArray(x)) throw new ErrorCampo("Envía un solo valor"); return x; };
 
 export const v = {
@@ -76,10 +75,6 @@ export const v = {
   }
 };
 
-/**
- * Valida `datos` con el `esquema` { campo: validador }. Devuelve un objeto solo con los campos del esquema.
- * Con `parcial`, ignora los campos ausentes (para PATCH).
- */
 export function validar(datos, esquema, { parcial = false } = {}) {
   const limpio = {};
   const errores = {};

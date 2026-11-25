@@ -43,7 +43,6 @@
       const esDueno = s && s.id === p.publicador.id;
       const puedeContactar = !s || s.rol === "arrendatario";
       const tipo = TIPOS[p.tipo]?.nombre || p.tipo;
-      // Google Maps: el público ve la zona; quien publica y los administradores, la dirección exacta
       const mapa = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent([p.direccion, p.zona, p.ciudad, "Colombia"].filter(Boolean).join(", "));
       const extraFotos = Math.max(p.fotos.length - 3, 0);
       const manana = new Date(Date.now() + 864e5).toISOString().slice(0, 10);
@@ -197,7 +196,7 @@
           sec.querySelector(".row").innerHTML = Renty.grid(propiedades);
           sec.classList.remove("d-none");
         }
-      } catch { /* las similares son opcionales */ }
+      } catch { }
     });
   </script>
 </body>

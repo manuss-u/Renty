@@ -1,4 +1,4 @@
-// Aplica las migraciones pendientes de backend/migraciones.   npm run migrate
+// Migraciones pendientes de backend/migraciones
 import { migrar, pool } from "../src/db.js";
 
 try {

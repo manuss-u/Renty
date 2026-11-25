@@ -1,5 +1,4 @@
-// Pruebas de la API contra una base PostgreSQL de pruebas, que se BORRA en cada corrida.
-//   npm test          (usa TEST_DATABASE_URL, por defecto postgres://renty:renty@localhost:5432/renty_test)
+// Pruebas de la API contra una base PostgreSQL
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -30,7 +29,6 @@ after(async () => {
   fs.rmSync(process.env.UPLOADS_DIR, { recursive: true, force: true });
 });
 
-/** Cliente que conserva la cookie de sesión, como un navegador. */
 function cliente() {
   let cookie = "";
   return async (ruta, { method = "GET", body, form } = {}) => {

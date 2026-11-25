@@ -1,4 +1,4 @@
-// Subida de fotos con multer: solo imágenes, nombre aleatorio, tamaño limitado.
+// Subida de fotos con multer
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";

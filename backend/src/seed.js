@@ -1,5 +1,4 @@
-// Carga datos de ejemplo. BORRA todo lo que haya en la base de datos.
-//   npm run seed
+// Carga datos de ejemplo. Borra todo lo que haya en la base de datos.
 import { pool, migrar, transaccion } from "./db.js";
 import { hashPassword } from "./auth.js";
 

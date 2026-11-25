@@ -1,7 +1,4 @@
-// Crea un administrador, o convierte en administrador una cuenta existente.
-//   npm run crear-admin
-// También sin preguntas (útil en servidores):
-//   ADMIN_EMAIL=ana@renty.co ADMIN_NOMBRE="Ana Díaz" ADMIN_PASSWORD="..." npm run crear-admin
+// Crea un administrador o convierte en administrador una cuenta existente
 import readline from "node:readline/promises";
 import { stdin, stdout } from "node:process";
 import { migrar, pool, uno } from "../src/db.js";

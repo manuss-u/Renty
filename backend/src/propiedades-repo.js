@@ -1,17 +1,13 @@
-// Consultas de propiedades compartidas por varias rutas.
+// Consultas de propiedades compartidas por varias rutas
 import { q, uno, parametros } from "./db.js";
 import { TIPOS, CIUDADES, AMENIDADES } from "./catalogos.js";
 
 const comoLista = (x) => (x === undefined || x === "" ? [] : Array.isArray(x) ? x : [x]);
 const numero = (x) => { const n = Number(x); return Number.isFinite(n) && n > 0 ? n : 0; };
 
-/** Condición para que el público vea una propiedad (alias p = propiedades, u = quien publica). */
+// Condición para que el público vea una propiedad
 export const VISIBLE = "p.estado = 'activa' AND p.moderacion = 'aprobada' AND u.activo";
 
-/**
- * Traduce los filtros de búsqueda (los mismos nombres que usa el front en la URL)
- * a un WHERE con parámetros $1, $2… Valores desconocidos se ignoran.
- */
 export function construirFiltro(f = {}, p = parametros()) {
   const where = [VISIBLE];
 

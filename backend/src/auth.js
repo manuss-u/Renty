@@ -7,7 +7,7 @@ import { HttpError, prohibido } from "./errores.js";
 const scrypt = promisify(crypto.scrypt);
 const COOKIE = "renty_sesion";
 
-/* ---------- Contraseñas (scrypt, incluido en Node) ---------- */
+// Contraseñas
 export async function hashPassword(password) {
   const sal = crypto.randomBytes(16);
   const hash = await scrypt(password, sal, 64);
@@ -22,7 +22,7 @@ export async function verificarPassword(password, guardado) {
   return crypto.timingSafeEqual(hash, esperado);
 }
 
-// Hash fijo para comparar cuando el correo no existe, y así no revelar qué correos están registrados por el tiempo de respuesta.
+// Comparar cuando el correo no existe y no revelar qué correos están registrados
 let hashFalso;
 export async function verificarContraHashFalso(password) {
   hashFalso ??= await hashPassword("contraseña-que-no-existe");
@@ -30,7 +30,7 @@ export async function verificarContraHashFalso(password) {
   return false;
 }
 
-/* ---------- Sesiones (token aleatorio en cookie httpOnly; en la BD solo su hash) ---------- */
+// Sesiones
 const sha256 = (s) => crypto.createHash("sha256").update(s).digest("hex");
 
 export async function crearSesion(res, usuarioId) {
@@ -59,7 +59,7 @@ function leerCookie(req) {
   return null;
 }
 
-/** Middleware: carga req.usuario si hay sesión válida de una cuenta activa (no obliga a tenerla). */
+// Middleware
 export async function cargarUsuario(req, _res, next) {
   req.usuario = null;
   const token = leerCookie(req);
@@ -72,7 +72,7 @@ export async function cargarUsuario(req, _res, next) {
   next();
 }
 
-/** Middleware: exige sesión y, opcionalmente, uno de los roles indicados. */
+// Middleware
 export const requiere = (...roles) => (req, _res, next) => {
   if (!req.usuario) return next(new HttpError(401, "Debes iniciar sesión"));
   if (roles.length && !roles.includes(req.usuario.rol)) return next(prohibido());
@@ -83,5 +83,5 @@ export async function limpiarSesionesVencidas() {
   await q("DELETE FROM sesiones WHERE expira < now()");
 }
 
-/** Lo que se expone del usuario al front. */
+// Lo que se muestra del usuario al front
 export const usuarioPublico = (u) => u && ({ id: u.id, email: u.email, nombre: u.nombre, responsable: u.responsable, telefono: u.telefono, rol: u.rol });

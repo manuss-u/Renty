@@ -1,5 +1,3 @@
-/* Renty — lógica compartida del front. Habla con el backend en /api.
-   Cada página espera a `Renty.ready` antes de pintar: así ya conoce la sesión y los catálogos. */
 
 const Renty = (() => {
   const ROLES = {
@@ -48,10 +46,10 @@ const Renty = (() => {
 
   let usuario = null;
 
-  /* ---------- API ---------- */
+  /* API */
   async function api(ruta, { method = "GET", body, form } = {}) {
     const opts = { method, credentials: "same-origin", headers: { Accept: "application/json" } };
-    if (form) opts.body = form;                     // FormData (fotos): el navegador pone el Content-Type
+    if (form) opts.body = form;
     else if (body !== undefined) { opts.body = JSON.stringify(body); opts.headers["Content-Type"] = "application/json"; }
 
     let res;
@@ -69,7 +67,7 @@ const Renty = (() => {
   const paginaActual = () => location.pathname.split("/").pop() + location.search;
   const irALogin = () => location.replace("login.html?next=" + encodeURIComponent(paginaActual()));
 
-  /* ---------- Sesión ---------- */
+  /* Sesión */
   const session = () => usuario;
 
   async function login(email, password) {
@@ -88,7 +86,7 @@ const Renty = (() => {
     return api("/favoritos/" + id, { method: activar ? "PUT" : "DELETE" });
   }
 
-  /* ---------- Utilidades ---------- */
+  /* Utilidades */
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const money = (n) => "$" + new Intl.NumberFormat("es-CO").format(n);
   const price = (p) => money(p.precio) + (p.operacion === "renta" ? " <small>/mes</small>" : "");
@@ -112,7 +110,7 @@ const Renty = (() => {
     return d === 1 ? "Ayer" : d < 7 ? `Hace ${d} días` : fecha(s, { day: "numeric", month: "short" });
   }
 
-  /* Ilustración de respaldo mientras la propiedad no tenga fotos */
+  /* Ilustración de respaldo cuando la propiedad no tenga fotos */
   function art(p, variant = 0) {
     const pal = [
       ["#f3e3d6", "#cd9573", "#5c7a67"], ["#e4ece6", "#5c7a67", "#cd9573"],
@@ -150,7 +148,7 @@ const Renty = (() => {
     return `<svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Ilustración de ${esc(nombreTipo)}"><rect width="400" height="260" fill="${bg}"/>${shape}</svg>`;
   }
 
-  /** Foto `n` de la propiedad, o la ilustración si no hay. */
+  /** Foto de la propiedad */
   function media(p, n = 0) {
     const foto = p.fotos?.[n]?.url || (n === 0 ? p.img : "");
     return art(p, n) + (foto ? `<img src="${esc(foto)}" alt="${n === 0 ? esc(p.titulo) : ""}" loading="lazy" onerror="this.remove()">` : "");
@@ -186,7 +184,7 @@ const Renty = (() => {
   }
   const grid = (list, cols = "col-sm-6 col-lg-4") => list.map((p) => `<div class="${cols}">${card(p)}</div>`).join("");
 
-  /* ---------- Avisos y errores ---------- */
+  /* Avisos y errores */
   function aviso(msg, tipo = "success") {
     let zona = document.getElementById("avisos");
     if (!zona) {
@@ -205,7 +203,6 @@ const Renty = (() => {
     new bootstrap.Toast(el, { delay: 4000 }).show();
   }
 
-  /** Marca en el formulario los campos que el servidor rechazó. `mapa` traduce nombres del API a ids de campos. */
   function erroresEnForm(form, err, mapa = {}) {
     form.querySelectorAll(".is-invalid").forEach((el) => el.classList.remove("is-invalid"));
     form.querySelectorAll("[data-error-servidor]").forEach((el) => el.remove());
@@ -229,10 +226,6 @@ const Renty = (() => {
     try { return await fn(); } finally { boton.disabled = false; boton.innerHTML = html; }
   }
 
-  /**
-   * Pestañas accesibles dentro de un panel. Botones [role=tab] con data-vista="x" y paneles con id "v-x".
-   * Al elegir una, solo cambia la vista; la dirección guarda la pestaña (#x) para poder enlazarla.
-   */
   function pestanas(contenedor, { alMostrar = () => {} } = {}) {
     const tabs = [...contenedor.querySelectorAll('[role="tab"]')];
     const vistas = tabs.map((t) => t.dataset.vista);
@@ -267,7 +260,7 @@ const Renty = (() => {
   const falla = (err) =>
     `<div class="col-12"><div class="empty-state"><i class="bi bi-wifi-off"></i><p class="mt-2 mb-3 text-muted">${esc(err.message)}</p><button class="btn btn-primary" onclick="location.reload()">Reintentar</button></div></div>`;
 
-  /* ---------- Navegación ---------- */
+  /* Navegación */
   function renderNav() {
     const el = document.getElementById("nav");
     if (!el) return;
@@ -343,7 +336,7 @@ const Renty = (() => {
     </footer>`;
   }
 
-  /* ---------- Control de acceso por rol (el servidor también lo valida) ---------- */
+  /* Control de acceso por rol */
   function guard() {
     const need = document.body.dataset.roles;
     if (!need) return true;
@@ -375,7 +368,7 @@ const Renty = (() => {
     });
   }
 
-  // Arranque: sesión + catálogos en paralelo
+  // Sesión y catálogos en paralelo
   const ready = (async () => {
     const [yo, cat] = await Promise.all([
       api("/auth/yo").catch(() => ({ usuario: null })),

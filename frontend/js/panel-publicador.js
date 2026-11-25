@@ -1,11 +1,9 @@
-/* Paneles de propietario e inmobiliaria. Pinta solo las secciones que existan en la página. */
 
 Renty.ready.then(async (usuario) => {
   const $ = (id) => document.getElementById(id);
   const esc = Renty.esc;
   const esInmo = usuario.rol === "inmobiliaria";
   const ETQ = { activa: "Publicada", pausada: "Pausada" };
-  // Estado combinado: primero la revisión del administrador, luego activa/pausada
   const estadoCelda = (p) =>
     p.moderacion === "pendiente" ? `<span class="estado revision">En revisión</span>${p.estado === "pausada" ? '<div class="small text-muted mt-1">Pausada</div>' : ""}`
     : p.moderacion === "rechazada" ? `<span class="estado rechazada">Rechazada</span><div class="small text-danger mt-1" style="max-width:240px;white-space:normal">${esc(p.motivo_rechazo || "")}</div>`
@@ -16,7 +14,7 @@ Renty.ready.then(async (usuario) => {
   let propiedades = [];
   let agentes = [];
 
-  /* ---------- Cifras ---------- */
+  /* Cifras */
   async function resumen() {
     try {
       const r = await Renty.api("/panel/resumen");
@@ -30,10 +28,10 @@ Renty.ready.then(async (usuario) => {
       document.getElementById("avisoModeracion")?.remove();
       if (avisos.length) document.querySelector(".page-head").insertAdjacentHTML("afterend",
         `<div class="alert ${r.rechazadas ? "alert-warning" : "bg-verde-suave border-0"} d-flex gap-2" id="avisoModeracion" role="status"><i class="bi ${r.rechazadas ? "bi-exclamation-triangle" : "bi-hourglass-split"}"></i><div>${avisos.join("<br>")}</div></div>`);
-    } catch { /* quedan en – */ }
+    } catch { }
   }
 
-  /* ---------- Tabla de propiedades ---------- */
+  /* Tabla de propiedades */
   function filas() {
     const fOp = $("fOp")?.value, fAg = $("fAg")?.value;
     const lista = propiedades.filter((p) => (!fOp || p.operacion === fOp) && (!fAg || String(p.agente?.id ?? "sin") === fAg));
@@ -113,7 +111,7 @@ Renty.ready.then(async (usuario) => {
   $("fOp")?.addEventListener("change", filas);
   $("fAg")?.addEventListener("change", filas);
 
-  /* ---------- Solicitudes de visita ---------- */
+  /* Solicitudes de visita */
   async function solicitudes() {
     if (!$("solicitudes")) return;
     try {
@@ -143,7 +141,7 @@ Renty.ready.then(async (usuario) => {
     } catch (err) { Renty.aviso(err.message, "error"); }
   });
 
-  /* ---------- Prospectos ---------- */
+  /* Prospectos */
   const PROS = { nuevo: ["nuevo", "Nuevo"], en_conversacion: ["activa", "En conversación"], visita_pendiente: ["revision", "Visita por confirmar"], visita_confirmada: ["activa", "Visita confirmada"] };
   async function prospectos() {
     if (!$("leads")) return;
@@ -159,7 +157,7 @@ Renty.ready.then(async (usuario) => {
     } catch (err) { $("leads").innerHTML = vacio(esc(err.message), "bi-wifi-off"); }
   }
 
-  /* ---------- Equipo (inmobiliaria) ---------- */
+  /* Equipo inmobiliaria */
   function equipo() {
     if (!$("equipo")) return;
     $("nEquipo").textContent = agentes.length;

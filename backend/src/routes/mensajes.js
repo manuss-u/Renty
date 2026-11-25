@@ -19,7 +19,7 @@ export async function agregarMensaje(conversacionId, autorId, texto, c = pool) {
     [conversacionId, autorId, texto], c);
 }
 
-/** Propiedad visible para el público (para iniciar contacto sobre ella). */
+// Propiedad visible al público
 export async function propiedadVisible(id, c = pool) {
   return uno(`SELECT p.id, p.publicador_id FROM propiedades p JOIN usuarios u ON u.id = p.publicador_id WHERE p.id = $1 AND ${VISIBLE}`, [id], c);
 }
@@ -53,7 +53,7 @@ r.get("/conversaciones", requiere(), async (req, res) => {
   })));
 });
 
-// El interesado inicia (o retoma) la conversación sobre una propiedad
+// El interesado inicia o retoma la conversación
 r.post("/conversaciones", requiere("arrendatario"), async (req, res) => {
   const d = validar(req.body, { propiedad_id: v.entero({ min: 1 }), texto: v.texto({ max: 2000 }) });
   const p = await propiedadVisible(d.propiedad_id);
@@ -66,7 +66,7 @@ r.post("/conversaciones", requiere("arrendatario"), async (req, res) => {
   res.status(201).json({ id });
 });
 
-// ?despues=<id> devuelve solo los mensajes nuevos (para actualizar el chat sin recargar todo)
+// Devuelve solo los mensajes nuevos
 r.get("/conversaciones/:id/mensajes", requiere(), async (req, res) => {
   const c = await conversacionDe(req.params.id, req.usuario);
   const despues = Number(req.query.despues) || 0;

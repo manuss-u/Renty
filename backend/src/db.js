@@ -1,12 +1,12 @@
-// Conexión a PostgreSQL, ayudas para consultas y migraciones.
+// Conexión a PostgreSQL
 import fs from "node:fs";
 import path from "node:path";
 import pg from "pg";
 import { config } from "./config.js";
 
-// BIGINT y COUNT(*) llegan como texto: se convierten a número (los precios caben de sobra en 2^53).
+// BIGINT y COUNT(*) llegan como texto y se convierten a número
 pg.types.setTypeParser(pg.types.builtins.INT8, Number);
-// Las fechas sin hora (DATE) se dejan como "AAAA-MM-DD" para que no cambien con la zona horaria.
+// Las fechas sin hora se dejan como "AAAA-MM-DD"
 pg.types.setTypeParser(pg.types.builtins.DATE, (s) => s);
 
 export const pool = new pg.Pool({
@@ -17,17 +17,16 @@ export const pool = new pg.Pool({
 
 pool.on("error", (err) => console.error("Error en una conexión inactiva de PostgreSQL:", err.message));
 
-/** Ejecuta una consulta y devuelve las filas. `c` permite usarla dentro de una transacción. */
+// Ejecuta una consulta y devuelve las filas
 export async function q(texto, params = [], c = pool) {
   return (await c.query(texto, params)).rows;
 }
 
-/** Primera fila o null. */
+// Primera fila o null
 export async function uno(texto, params = [], c = pool) {
   return (await c.query(texto, params)).rows[0] ?? null;
 }
 
-/** Ejecuta `fn(cliente)` dentro de BEGIN/COMMIT; si algo falla hace ROLLBACK. */
 export async function transaccion(fn) {
   const c = await pool.connect();
   try {
@@ -43,16 +42,11 @@ export async function transaccion(fn) {
   }
 }
 
-/**
- * Arma parámetros posicionales ($1, $2…) a medida que se construye una consulta dinámica.
- *   const p = parametros(); where.push(`ciudad = ${p.add("Cali")}`); q(sql, p.valores)
- */
 export function parametros(iniciales = []) {
   const valores = [...iniciales];
   return { valores, add: (v) => (valores.push(v), `$${valores.length}`) };
 }
 
-/** Aplica, en orden, los archivos .sql de backend/migraciones que aún no se han ejecutado. */
 export async function migrar({ silencioso = false } = {}) {
   const c = await pool.connect();
   try {

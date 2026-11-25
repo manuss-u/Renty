@@ -1,4 +1,4 @@
-// Favoritos y búsquedas guardadas (solo arrendatarios)
+// Favoritos
 import { Router } from "express";
 import { q, uno } from "../db.js";
 import { requiere } from "../auth.js";
@@ -8,7 +8,7 @@ import { contar, hidratar, VISIBLE } from "../propiedades-repo.js";
 const r = Router();
 const soloArr = requiere("arrendatario");
 
-/* ---------- Favoritos ---------- */
+//Favoritos
 r.get("/favoritos", soloArr, async (req, res) => {
   const filas = await q(`
     SELECT p.*, u.nombre AS pub_nombre, u.rol AS pub_rol
@@ -31,7 +31,7 @@ r.delete("/favoritos/:id", soloArr, async (req, res) => {
   res.json({ propiedad_id: id, favorito: false });
 });
 
-/* ---------- Búsquedas guardadas ---------- */
+//Búsquedas guardadas
 const filtrosDe = (qs) => {
   const sp = new URLSearchParams(qs);
   return Object.fromEntries([...new Set(sp.keys())].map((k) => {
@@ -56,7 +56,7 @@ r.post("/busquedas", soloArr, async (req, res) => {
   res.status(201).json({ id, nombre: d.nombre, filtros });
 });
 
-// Marca la búsqueda como revisada (pone en cero el contador de nuevas)
+// Marca búsqueda como revisada
 r.post("/busquedas/:id/revisada", soloArr, async (req, res) => {
   const filas = await q("UPDATE busquedas SET ultima_revision = now() WHERE id = $1 AND usuario_id = $2 RETURNING id", [Number(req.params.id) || 0, req.usuario.id]);
   if (!filas.length) throw noEncontrado("Búsqueda", true);

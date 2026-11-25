@@ -95,7 +95,7 @@
           });
           $("nuevos").textContent = r.usuarios.nuevos_7d ? `+${r.usuarios.nuevos_7d} esta semana` : "";
           $("nPend").textContent = r.propiedades.pendientes || "";
-        } catch { /* quedan en – */ }
+        } catch { }
       }
 
       const estado = (p) => p.moderacion === "pendiente" ? '<span class="estado revision">Pendiente</span>'

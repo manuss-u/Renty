@@ -146,10 +146,10 @@
       $("ciudad").insertAdjacentHTML("beforeend", CIUDADES.map((c) => `<option>${esc(c)}</option>`).join(""));
       $("amen").innerHTML = AMENIDADES.map((a, i) => `<input class="btn-check" type="checkbox" name="amen" value="${esc(a)}" id="pA${i}"><label for="pA${i}">${esc(a)}</label>`).join("");
 
-      // Fotos: las que ya tiene la propiedad (al editar) y las nuevas elegidas
-      let existentes = [];          // [{id, url}]
-      const quitar = new Set();     // ids de fotos existentes a borrar
-      let nuevas = [];              // File[]
+      // Fotos
+      let existentes = [];
+      const quitar = new Set();
+      let nuevas = [];
 
       function pintarFotos() {
         const items = [
@@ -175,7 +175,7 @@
         pintarFotos();
       });
 
-      // Modo edición: precarga los datos de la propiedad
+      // Modo edición
       const editarId = Number(new URLSearchParams(location.search).get("editar")) || null;
       if (editarId) {
         $("titulo").textContent = "Editar propiedad";

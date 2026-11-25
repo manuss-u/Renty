@@ -21,7 +21,7 @@ export function crearApp() {
     next();
   });
 
-  /* ---------- API ---------- */
+  // API
   const api = express.Router();
   api.use(express.json({ limit: "100kb" }));
   api.use(cargarUsuario);
@@ -32,12 +32,11 @@ export function crearApp() {
   api.use((_req, _res, next) => next(new HttpError(404, "Ruta no encontrada")));
   app.use("/api", api);
 
-  /* ---------- Archivos ---------- */
+  // Archivos
   app.use("/uploads", express.static(config.uploadsDir, { maxAge: "7d", index: false }));
   app.use(express.static(config.frontendDir, { extensions: ["html"] }));
 
-  /* ---------- Errores ---------- */
-  // eslint-disable-next-line no-unused-vars
+  // Errores
   app.use((err, req, res, _next) => {
     let status = err.status || err.statusCode || 500;
     let error = err.message;
@@ -48,12 +47,12 @@ export function crearApp() {
     } else if (err.type === "entity.parse.failed") {
       error = "El cuerpo de la petición no es JSON válido";
     } else if (err.code === "ECONNREFUSED" || err.code === "57P01" || err.code === "3D000" || err.code === "28P01") {
-      // PostgreSQL apagado, base de datos inexistente o credenciales malas
+      // PostgreSQL apagado
       console.error("No hay conexión con PostgreSQL:", err.message);
       status = 503;
       error = "El servicio no está disponible en este momento. Inténtalo de nuevo en unos minutos.";
     } else if (err.code === "22003" || err.code === "22P02") {
-      // Número fuera de rango o con formato inválido (p. ej. un id gigante en la URL)
+      // Número fuera de rango o con formato inválido
       status = 400;
       error = "Algún valor enviado no es válido";
     } else if (status >= 500) {

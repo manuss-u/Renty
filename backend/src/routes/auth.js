@@ -43,7 +43,7 @@ r.post("/registro", limite, async (req, res) => {
       esInmo ? extra.empresa : base.nombre, esInmo ? base.nombre : null,
       base.telefono, esInmo ? extra.nit : null, base.rol]);
   } catch (e) {
-    // Dos registros simultáneos con el mismo correo: el índice único lo impide
+    // Dos registros con el mismo correo
     if (e.code === "23505") throw new HttpError(409, "Ya existe una cuenta con ese correo", { email: "Ya existe una cuenta con ese correo" });
     throw e;
   }

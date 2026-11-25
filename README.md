@@ -12,6 +12,8 @@ Con el proyecto en GitHub: botón verde **Code → Codespaces → Create codespa
 
 Para enseñárselo a alguien en otro dispositivo: en **Ports**, clic derecho sobre el 3000 → **Port Visibility → Public**, y comparte esa dirección. Funciona solo mientras el codespace esté encendido.
 
+**Pruebas en Codespaces:** en la terminal del codespace funcionan `npm test` (API) y `npm run test:e2e` (interfaz con Cypress, en un navegador sin ventana). La primera vez, Cypress tarda unos minutos en descargarse. `npm run test:e2e:abrir` no sirve ahí, porque el codespace no tiene pantalla. Si una prueba falla, Cypress guarda una captura en `cypress/screenshots/`, que puedes abrir desde el explorador de archivos.
+
 La configuración está en `.devcontainer/`. También sirve en VS Code de escritorio con la extensión *Dev Containers* y Docker.
 
 ## Cómo correrlo
@@ -75,6 +77,41 @@ Abre http://localhost:3000. El servidor aplica las migraciones pendientes al arr
 | `npm run migrate` | Aplica las migraciones pendientes sin arrancar el servidor |
 | `npm run crear-admin` | Crea un administrador, o convierte en administrador una cuenta existente |
 | `npm test` | Pruebas de la API contra `renty_test` (la base de pruebas se borra en cada corrida) |
+| `npm run test:e2e` | Pruebas de interfaz con Cypress, en un navegador sin ventana |
+| `npm run test:e2e:abrir` | Abre Cypress para ver las pruebas de interfaz mientras corren |
+
+## Pruebas
+
+Hay dos tipos de pruebas automáticas. Las dos usan la base `renty_test`, que se borra cada vez, así que nunca tocan tus datos.
+
+**API** (`backend/test/`): prueban el backend a través de HTTP: permisos por rol, validaciones, moderación, búsqueda y borrado de fotos.
+
+```bash
+npm test
+```
+
+**Interfaz** (`cypress/`): abren la app en un navegador y hacen lo que haría una persona: buscar con filtros, ingresar con cada rol, cambiar de pestaña, guardar favoritos, pedir visitas, publicar con foto, moderar y suspender cuentas, y revisar que nada se desborde en el celular.
+
+```bash
+npm run test:e2e
+```
+
+El comando arranca solo un servidor de pruebas en el puerto 3100, corre todo y lo apaga. Antes de cada prueba se recargan los datos de ejemplo. Para ver las pruebas en una ventana y repetirlas paso a paso:
+
+```bash
+npm run test:e2e:abrir
+```
+
+| Archivo | Qué prueba |
+|---|---|
+| `01-publico.cy.js` | Portada, buscador, filtros, búsqueda sin tildes, detalle, enlace a Google Maps |
+| `02-acceso.cy.js` | Ingreso, registro, cierre de sesión y acceso según el rol |
+| `03-arrendatario.cy.js` | Pestañas del panel, favoritos, búsquedas guardadas, visitas y mensajes |
+| `04-publicadores.cy.js` | Paneles de propietario e inmobiliaria, publicar con foto, editar, agentes |
+| `05-admin.cy.js` | Aprobar y rechazar propiedades, suspender y reactivar cuentas |
+| `06-movil.cy.js` | Que ninguna página se desborde en el celular y el panel de filtros |
+
+La primera vez, `npm install` descarga el programa de Cypress (unos 200 MB).
 
 ## Administradores
 

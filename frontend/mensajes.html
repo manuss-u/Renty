@@ -90,7 +90,7 @@
             }
           }
           await cargarLista();
-        } catch { /* reintenta en el siguiente ciclo */ }
+        } catch { }
       }
 
       lista.addEventListener("click", (e) => { const b = e.target.closest("[data-chat]"); if (b) abrir(Number(b.dataset.chat)).catch((err) => Renty.aviso(err.message, "error")); });

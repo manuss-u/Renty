@@ -18,7 +18,6 @@
     <div class="row g-4 g-lg-5 align-items-stretch justify-content-center">
       <div class="col-lg-5 d-none d-lg-block">
         <div class="auth-aside d-flex flex-column">
-          <h2 class="mb-3">Qué bueno verte de nuevo.</h2>
           <p style="color:rgba(255,255,255,.85)">Al ingresar verás el panel que corresponde a tu tipo de cuenta.</p>
           <ul class="list-unstyled mt-3 mb-0">
             <li><i class="bi bi-search-heart me-2"></i><b>Arrendatario:</b> favoritos, alertas y visitas.</li>
@@ -62,7 +61,6 @@
     Renty.ready.then((yaConSesion) => {
       const next = new URLSearchParams(location.search).get("next");
       const go = (u) => {
-        // Solo se aceptan destinos internos (un archivo .html de este sitio)
         const seguro = next && /^[\w-]+\.html(\?[\w=&%.+-]*)?$/.test(next) ? next : null;
         location.href = seguro || Renty.ROLES[u.rol].panel;
       };

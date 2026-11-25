@@ -24,7 +24,6 @@
       <a class="btn btn-primary" href="propiedades.html"><i class="bi bi-search me-1"></i>Buscar propiedades</a>
     </div>
 
-    <!-- Secciones del panel: al elegir una solo cambia la vista de abajo -->
     <div class="pestanas" role="tablist" aria-label="Secciones de tu panel">
       <button type="button" role="tab" id="t-favoritos" aria-controls="v-favoritos" aria-selected="true" data-vista="favoritos">Favoritos <span class="cuenta" id="nFavs"></span></button>
       <button type="button" role="tab" id="t-busquedas" aria-controls="v-busquedas" aria-selected="false" tabindex="-1" data-vista="busquedas">Búsquedas guardadas <span class="cuenta" id="nBusq"></span></button>
@@ -73,21 +72,19 @@
       const vacio = (txt, icon = "bi-inbox") => `<div class="text-center text-muted py-5"><i class="bi ${icon} fs-3 d-block mb-2 text-terracota"></i>${txt}</div>`;
       const ESTADOS = { pendiente: ["revision", "Pendiente"], confirmada: ["activa", "Confirmada"], reprogramar: ["nuevo", "Proponen otra fecha"], cancelada: ["pausada", "Cancelada"] };
 
-      /* ---------- Pestañas: cada sección se carga la primera vez que se abre ---------- */
       const cargadas = new Set();
       const CARGAR = { favoritos: cargarFavoritos, busquedas: cargarBusquedas, visitas: cargarVisitas, mensajes: cargarMensajes };
 
-      /* ---------- Números de cada pestaña ---------- */
       async function resumen() {
         try {
           const r = await Renty.api("/panel/resumen");
           $("nFavs").textContent = r.favoritos; $("nBusq").textContent = r.busquedas;
           $("nVis").textContent = r.visitas_proximas; $("nMsg").textContent = r.no_leidos || "";
           $("t-mensajes").setAttribute("aria-label", r.no_leidos ? `Mensajes, ${Renty.plural(r.no_leidos, "sin leer", "sin leer")}` : "Mensajes");
-        } catch { /* las pestañas funcionan aunque falten los números */ }
+        } catch { }
       }
 
-      /* ---------- Favoritos ---------- */
+      /* Favoritos */
       async function cargarFavoritos() {
         $("favs").innerHTML = Renty.cargando();
         try {
@@ -97,7 +94,7 @@
         } catch (err) { $("favs").innerHTML = Renty.falla(err); }
       }
 
-      /* ---------- Búsquedas guardadas ---------- */
+      /* Búsquedas guardadas */
       async function cargarBusquedas() {
         try {
           const lista = await Renty.api("/busquedas");
@@ -122,7 +119,7 @@
         }
       });
 
-      /* ---------- Visitas ---------- */
+      /* Visitas */
       const filaVisita = (v, pasada) => {
         const [clase, txt] = ESTADOS[v.estado];
         return `
@@ -153,7 +150,7 @@
         catch (err) { Renty.aviso(err.message, "error"); }
       });
 
-      /* ---------- Mensajes ---------- */
+      /* Mensajes */
       async function cargarMensajes() {
         try {
           const lista = await Renty.api("/conversaciones");
@@ -171,7 +168,7 @@
         } catch (err) { $("conversaciones").innerHTML = vacio(esc(err.message), "bi-wifi-off"); }
       }
 
-      /* ---------- Recomendadas ---------- */
+      /* Recomendadas */
       async function recomendadas() {
         $("recs").innerHTML = Renty.cargando();
         try {
@@ -180,7 +177,6 @@
         } catch (err) { $("recs").innerHTML = Renty.falla(err); }
       }
 
-      // Al guardar o quitar un favorito (aquí o en las recomendadas), se actualizan la lista y el número
       document.addEventListener("renty:favs", () => { cargarFavoritos(); resumen(); });
 
       resumen(); recomendadas();

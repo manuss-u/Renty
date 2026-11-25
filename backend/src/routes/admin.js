@@ -1,4 +1,3 @@
-// Administración: moderación de propiedades y gestión de cuentas. Solo rol "admin".
 import { Router } from "express";
 import { q, uno, parametros } from "../db.js";
 import { requiere, cerrarSesionesDe } from "../auth.js";
@@ -13,7 +12,6 @@ r.use("/admin", requiere("admin"));
 const numero = (x) => { const n = Number(x); return Number.isInteger(n) && n > 0 ? n : 0; };
 const patron = (texto) => `%${String(texto).trim().slice(0, 80).replace(/[\\%_]/g, (c) => "\\" + c)}%`;
 
-/* ---------- Resumen ---------- */
 r.get("/admin/resumen", async (_req, res) => {
   const [usuarios, propiedades, actividad] = await Promise.all([
     uno(`SELECT
@@ -38,8 +36,7 @@ r.get("/admin/resumen", async (_req, res) => {
   res.json({ usuarios, propiedades, actividad });
 });
 
-/* ---------- Propiedades ---------- */
-// GET /api/admin/propiedades?moderacion=pendiente&q=&pagina=
+// Propiedades
 r.get("/admin/propiedades", async (req, res) => {
   const p = parametros();
   const where = ["TRUE"];
@@ -50,7 +47,6 @@ r.get("/admin/propiedades", async (req, res) => {
   }
   if (numero(req.query.publicador)) where.push(`p.publicador_id = ${p.add(numero(req.query.publicador))}`);
   const porPagina = 20, pagina = Math.max(numero(req.query.pagina), 1);
-  // Las pendientes, de la más antigua a la más nueva (orden de llegada); el resto, recientes primero
   const orden = req.query.moderacion === "pendiente" ? "p.actualizado ASC" : "p.actualizado DESC";
 
   const filas = await q(`
@@ -99,8 +95,7 @@ r.delete("/admin/propiedades/:id", async (req, res) => {
   res.status(204).end();
 });
 
-/* ---------- Usuarios ---------- */
-// GET /api/admin/usuarios?rol=&estado=activo|suspendido&q=&pagina=
+// Usuarios
 r.get("/admin/usuarios", async (req, res) => {
   const p = parametros();
   const where = ["TRUE"];
@@ -122,7 +117,7 @@ r.get("/admin/usuarios", async (req, res) => {
   res.json({ total: filas[0]?.total ?? 0, pagina, por_pagina: porPagina, usuarios: filas.map(({ total, ...u }) => u) });
 });
 
-// Suspender o reactivar. Al suspender se cierran sus sesiones y sus propiedades dejan de verse.
+// Suspender o reactivar
 r.patch("/admin/usuarios/:id", async (req, res) => {
   const id = Number(req.params.id) || 0;
   const { activo } = validar(req.body, { activo: v.booleano() });

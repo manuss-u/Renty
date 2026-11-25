@@ -36,7 +36,6 @@
     <div class="d-flex flex-wrap gap-2 mb-3" id="chips"></div>
 
     <div class="row g-4">
-      <!-- Filtros: columna fija en escritorio, panel lateral en móvil -->
       <div class="col-lg-3">
         <div class="offcanvas-lg offcanvas-start filters-panel" tabindex="-1" id="filtros" aria-labelledby="filtrosLbl">
           <div class="offcanvas-header border-bottom">
@@ -134,14 +133,12 @@
       const $ = (id) => document.getElementById(id);
       const esc = Renty.esc;
 
-      // Opciones generadas desde los catálogos del servidor
       $("fCiudad").insertAdjacentHTML("beforeend", CIUDADES.map((c) => `<option>${esc(c)}</option>`).join(""));
       $("fTipos").innerHTML = Object.entries(TIPOS).map(([k, t]) =>
         `<div class="form-check"><input class="form-check-input" type="checkbox" name="tipo" value="${k}" id="fT_${k}"><label class="form-check-label" for="fT_${k}">${t.nombre}</label></div>`).join("");
       $("fAmen").innerHTML = AMENIDADES.map((a, i) =>
         `<input class="btn-check" type="checkbox" name="amen" value="${esc(a)}" id="fA${i}"><label for="fA${i}">${esc(a)}</label>`).join("");
 
-      // Estado inicial desde la URL (p. ej. al venir del buscador de la portada o de una búsqueda guardada)
       const qs = new URLSearchParams(location.search);
       for (const [k, val] of qs) {
         if (k === "orden") { $("orden").value = val; continue; }
@@ -151,7 +148,6 @@
         });
       }
 
-      /** Filtros actuales como query string, sin valores vacíos. */
       function filtros() {
         const out = new URLSearchParams();
         for (const [k, val] of new FormData(f)) if (val !== "" && !(k === "area" && val === "0")) out.append(k, val);
@@ -167,7 +163,7 @@
         history.replaceState(null, "", "propiedades.html" + (conOrden.toString() ? "?" + conOrden : ""));
 
         pagina = mas ? pagina + 1 : 1;
-        const id = ++peticion;   // si el usuario cambia otro filtro antes de que llegue la respuesta, se descarta la vieja
+        const id = ++peticion;
         if (!mas) $("resultados").setAttribute("aria-busy", "true");
         pintarChips();
 
@@ -210,7 +206,6 @@
         $("chips").onclick = (e) => { const b = e.target.closest("[data-chip]"); if (b) { chips[b.dataset.chip].clear(); cargar(); } };
       }
 
-      // Los campos de texto esperan a que el usuario deje de escribir
       let espera;
       f.addEventListener("input", (e) => {
         clearTimeout(espera);
@@ -224,7 +219,7 @@
       $("limpiar").addEventListener("click", limpiar);
       $("resultados").addEventListener("click", (e) => { if (e.target.closest("[data-limpiar]")) limpiar(); });
 
-      // Guardar búsqueda (arrendatarios y visitantes, que primero deben ingresar)
+      // Guardar búsqueda
       const s = Renty.session();
       if (!s || s.rol === "arrendatario") $("guardar").classList.remove("d-none");
       $("guardar").addEventListener("click", async (e) => {

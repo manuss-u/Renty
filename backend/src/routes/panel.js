@@ -1,4 +1,3 @@
-// Catálogos, resúmenes de los paneles, agentes de inmobiliaria y prospectos
 import { Router } from "express";
 import { q, uno } from "../db.js";
 import { requiere } from "../auth.js";
@@ -8,14 +7,14 @@ import { VISIBLE } from "../propiedades-repo.js";
 
 const r = Router();
 
-/* ---------- Catálogos (públicos) ---------- */
+// Catálogos
 r.get("/catalogos", async (_req, res) => {
   const conteo = Object.fromEntries(Object.keys(TIPOS).map((t) => [t, 0]));
   for (const f of await q(`SELECT p.tipo, COUNT(*) AS n FROM propiedades p JOIN usuarios u ON u.id = p.publicador_id WHERE ${VISIBLE} GROUP BY p.tipo`)) conteo[f.tipo] = f.n;
   res.json({ ciudades: CIUDADES, tipos: TIPOS, amenidades: AMENIDADES, conteo_tipos: conteo });
 });
 
-/* ---------- Resumen de cada panel ---------- */
+// Resumen de cada panel
 r.get("/panel/resumen", requiere("arrendatario", "propietario", "inmobiliaria"), async (req, res) => {
   const yo = req.usuario.id;
   const { no_leidos } = await uno(`
@@ -52,7 +51,7 @@ r.get("/panel/resumen", requiere("arrendatario", "propietario", "inmobiliaria"),
   });
 });
 
-/* ---------- Prospectos: personas que escribieron sobre mis propiedades ---------- */
+// Prospectos
 r.get("/prospectos", requiere("propietario", "inmobiliaria"), async (req, res) => {
   const filas = await q(`
     SELECT c.id AS conversacion_id, ua.nombre, p.titulo AS propiedad, p.id AS propiedad_id,
@@ -67,7 +66,7 @@ r.get("/prospectos", requiere("propietario", "inmobiliaria"), async (req, res) =
   })));
 });
 
-/* ---------- Agentes (inmobiliaria) ---------- */
+// Agentes inmobiliaria
 const soloInmo = requiere("inmobiliaria");
 const SELECT_AGENTE = `
   SELECT a.id, a.nombre, a.email, a.estado, a.creado,

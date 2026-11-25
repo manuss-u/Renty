@@ -1,5 +1,3 @@
-// Fuente única de catálogos. El front los obtiene de GET /api/catalogos.
-
 export const CIUDADES = ["Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena"];
 
 export const TIPOS = {
@@ -12,6 +10,6 @@ export const TIPOS = {
 
 export const AMENIDADES = ["Mascotas", "Amoblado", "Parqueadero", "Ascensor", "Balcón", "Piscina", "Gimnasio", "Vigilancia 24h", "Zona BBQ"];
 
-// Roles con los que alguien puede registrarse. "admin" solo se crea con `npm run crear-admin`.
+// Roles con los que alguien puede registrarse
 export const ROLES_PUBLICOS = ["arrendatario", "propietario", "inmobiliaria"];
 export const ROLES = [...ROLES_PUBLICOS, "admin"];

@@ -27,7 +27,7 @@ const esquema = {
   amen: v.lista(AMENIDADES)
 };
 
-/** Carga la propiedad y comprueba que el usuario sea quien la publicó. */
+// Carga la propiedad y comprueba que el usuario sea quien la publicó
 async function propiaOFalla(id, usuario) {
   const p = await uno("SELECT * FROM propiedades WHERE id = $1", [Number(id) || 0]);
   if (!p) throw noEncontrado("Propiedad", true);
@@ -48,14 +48,13 @@ async function guardarFotos(c, id, archivos) {
     [id, archivos.map((f) => f.filename), n], c);
 }
 
-// Si algo falla después de subir, se borran los archivos recién guardados.
+// Si algo falla después de subir se borran los archivos recién guardados
 const conLimpieza = (fn) => async (req, res) => {
   try { await fn(req, res); } catch (e) { borrarArchivos((req.files || []).map((f) => f.filename)); throw e; }
 };
 
-/* ---------- Públicas ---------- */
+// Públicas
 
-// GET /api/propiedades?operacion=renta&ciudad=Bogotá&tipo=casa&tipo=apartamento&min=&max=&hab=&banos=&area=&amen=Mascotas&pub=propietario&q=&orden=&limite=&pagina=
 r.get("/propiedades", async (req, res) => {
   res.json(await buscar(req.query, req.usuario));
 });
@@ -71,7 +70,7 @@ r.get("/propiedades/:id", async (req, res) => {
   res.json(p);
 });
 
-/* ---------- De quien publica ---------- */
+// De quien publica
 
 r.get("/mis-propiedades", requiere(...PUBLICAN), async (req, res) => {
   const filas = await q(`
@@ -87,7 +86,7 @@ r.get("/mis-propiedades", requiere(...PUBLICAN), async (req, res) => {
   }));
 });
 
-// Las propiedades nuevas quedan pendientes hasta que un administrador las apruebe.
+// Propiedades nuevas quedan pendientes hasta que un administrador las apruebe
 r.post("/propiedades", requiere(...PUBLICAN), subirFotos, conLimpieza(async (req, res) => {
   const d = validar(req.body, esquema);
   const id = await transaccion(async (c) => {
@@ -104,7 +103,6 @@ r.post("/propiedades", requiere(...PUBLICAN), subirFotos, conLimpieza(async (req
   res.status(201).json(p);
 }));
 
-// Editar devuelve la propiedad a revisión: así nadie cambia el anuncio después de aprobado sin que se revise otra vez.
 r.put("/propiedades/:id", requiere(...PUBLICAN), subirFotos, conLimpieza(async (req, res) => {
   const actual = await propiaOFalla(req.params.id, req.usuario);
   const d = validar(req.body, esquema);
@@ -133,7 +131,7 @@ r.put("/propiedades/:id", requiere(...PUBLICAN), subirFotos, conLimpieza(async (
   res.json(p);
 }));
 
-// Cambios rápidos desde el panel: pausar/activar o asignar agente (no requieren nueva revisión)
+// Pausar, activar o asignar agente
 r.patch("/propiedades/:id", requiere(...PUBLICAN), async (req, res) => {
   const actual = await propiaOFalla(req.params.id, req.usuario);
   const d = validar(req.body, {
@@ -157,7 +155,7 @@ r.delete("/propiedades/:id", requiere(...PUBLICAN), async (req, res) => {
   res.status(204).end();
 });
 
-/** Borra la propiedad (y en cascada sus fotos, visitas y mensajes) y los archivos del disco. */
+// Borra la propiedad y los archivos
 export async function eliminarPropiedad(id) {
   const archivos = (await q("SELECT archivo FROM fotos WHERE propiedad_id = $1", [id])).map((f) => f.archivo);
   await q("DELETE FROM propiedades WHERE id = $1", [id]);

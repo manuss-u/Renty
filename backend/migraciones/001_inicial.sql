@@ -1,31 +1,29 @@
--- Esquema inicial de Renty (PostgreSQL)
 
--- Para buscar sin importar tildes ("balcon" encuentra "balcón")
 CREATE EXTENSION IF NOT EXISTS unaccent;
 
 CREATE TABLE usuarios (
   id              SERIAL PRIMARY KEY,
   email           TEXT        NOT NULL,
   password_hash   TEXT        NOT NULL,
-  nombre          TEXT        NOT NULL,          -- persona, o razón social si es inmobiliaria
-  responsable     TEXT,                          -- solo inmobiliaria: persona de contacto
+  nombre          TEXT        NOT NULL,
+  responsable     TEXT,
   telefono        TEXT,
-  nit             TEXT,                          -- solo inmobiliaria
+  nit             TEXT,
   rol             TEXT        NOT NULL CHECK (rol IN ('arrendatario', 'propietario', 'inmobiliaria', 'admin')),
-  activo          BOOLEAN     NOT NULL DEFAULT TRUE,   -- FALSE = cuenta suspendida por un administrador
+  activo          BOOLEAN     NOT NULL DEFAULT TRUE,
   creado          TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE UNIQUE INDEX usuarios_email_unico ON usuarios (lower(email));
 
 CREATE TABLE sesiones (
-  token_hash      TEXT        PRIMARY KEY,       -- se guarda el hash, nunca el token en claro
+  token_hash      TEXT        PRIMARY KEY,
   usuario_id      INTEGER     NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
   expira          TIMESTAMPTZ NOT NULL,
   creado          TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX sesiones_usuario ON sesiones (usuario_id);
 
--- Agentes del equipo de una inmobiliaria
+-- Agentes de inmobiliaria
 CREATE TABLE agentes (
   id              SERIAL PRIMARY KEY,
   inmobiliaria_id INTEGER     NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
@@ -46,16 +44,14 @@ CREATE TABLE propiedades (
   tipo            TEXT        NOT NULL,
   ciudad          TEXT        NOT NULL,
   zona            TEXT        NOT NULL,
-  direccion       TEXT        NOT NULL,          -- privada: solo la ven quien publica y los administradores
+  direccion       TEXT        NOT NULL,
   precio          BIGINT      NOT NULL CHECK (precio > 0),
   administracion  BIGINT,
   hab             SMALLINT    NOT NULL DEFAULT 0 CHECK (hab >= 0),
   banos           SMALLINT    NOT NULL DEFAULT 1 CHECK (banos >= 0),
   area            INTEGER     NOT NULL CHECK (area > 0),
   parqueaderos    SMALLINT    NOT NULL DEFAULT 0,
-  -- Lo decide quien publica
   estado          TEXT        NOT NULL DEFAULT 'activa' CHECK (estado IN ('activa', 'pausada')),
-  -- Lo decide un administrador. Solo se muestran al público las 'aprobada'.
   moderacion      TEXT        NOT NULL DEFAULT 'pendiente' CHECK (moderacion IN ('pendiente', 'aprobada', 'rechazada')),
   motivo_rechazo  TEXT,
   moderado_por    INTEGER     REFERENCES usuarios(id) ON DELETE SET NULL,
@@ -79,7 +75,7 @@ CREATE INDEX amenidades_por_nombre ON propiedad_amenidades (amenidad, propiedad_
 CREATE TABLE fotos (
   id              SERIAL PRIMARY KEY,
   propiedad_id    INTEGER     NOT NULL REFERENCES propiedades(id) ON DELETE CASCADE,
-  archivo         TEXT        NOT NULL,          -- nombre del archivo dentro de /uploads
+  archivo         TEXT        NOT NULL,
   orden           INTEGER     NOT NULL DEFAULT 0
 );
 CREATE INDEX fotos_propiedad ON fotos (propiedad_id, orden);
@@ -95,7 +91,7 @@ CREATE TABLE busquedas (
   id              SERIAL PRIMARY KEY,
   usuario_id      INTEGER     NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
   nombre          TEXT        NOT NULL,
-  filtros         TEXT        NOT NULL,          -- query string, p. ej. "operacion=renta&ciudad=Bogot%C3%A1"
+  filtros         TEXT        NOT NULL,
   ultima_revision TIMESTAMPTZ NOT NULL DEFAULT now(),
   creado          TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -114,7 +110,6 @@ CREATE TABLE visitas (
 CREATE INDEX visitas_propiedad ON visitas (propiedad_id);
 CREATE INDEX visitas_arrendatario ON visitas (arrendatario_id);
 
--- Una conversación por (propiedad, interesado)
 CREATE TABLE conversaciones (
   id              SERIAL PRIMARY KEY,
   propiedad_id    INTEGER     NOT NULL REFERENCES propiedades(id) ON DELETE CASCADE,
